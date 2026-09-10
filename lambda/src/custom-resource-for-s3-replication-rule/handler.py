@@ -6,7 +6,6 @@ s3_client = boto3.client('s3')
 def type_correct_configuration(replication_configuration, event, context):
     print(replication_configuration)
 
-    # CloudFormation 'Rules' is a list
     rules = replication_configuration.get("Rules", [])
 
     if len(rules) == 0:
@@ -16,10 +15,9 @@ def type_correct_configuration(replication_configuration, event, context):
             responseStatus=FAILED,
             reason="ReplicationConfiguration Rules Missing"
         )
-        return None # Return None to signal a failure to main()
+        return None
 
     try:
-        # Iterate over the list of rules
         for rule in rules:
             if "Priority" in rule:
                 rule["Priority"] = int(rule["Priority"])
@@ -34,7 +32,7 @@ def type_correct_configuration(replication_configuration, event, context):
             responseStatus=FAILED,
             reason="Priority Rule Should be a number"
         )
-        return None # Return None to signal a failure to main()
+        return None
 
 def main(event, context):
     properties = event.get('ResourceProperties', {})
