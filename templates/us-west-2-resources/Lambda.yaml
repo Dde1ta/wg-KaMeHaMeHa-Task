@@ -1,7 +1,7 @@
 Parameters:
   EnablerLambdaFunctionExecutionRoleArn:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/internship/tasks/ka-me-ha-me-ha/us-west-2/iam/lambda-execution-roles/enabler-arn"
+    Default: "/internship/tasks/ka-me-ha-me-ha/global/iam/lambda-execution-roles/enabler-arn"
     Description: "The name ssm parameter which stores ka-me-ha-me-ha-enabler function execution role arn"
   
   EnablerLambdaFunctionCodeBucket:

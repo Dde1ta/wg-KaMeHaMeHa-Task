@@ -32,6 +32,11 @@ Resources:
               - "dynamodb:DescribeStream"
               - "dynamodb:GetShardIterator"
               - "dynamodb:GetRecords"
+          - Effect: "Allow"
+            Action:
+              - "kms:Decrypt"
+            Resource: "*"
+
       PolicyName: KaMeHaMeHa-us-west-2-Enabler-Lambda-Execution-Role-Policy
       Roles:
         - !Ref USWest2EnablerLambdaExecutionRole
@@ -101,7 +106,7 @@ Resources:
   USWest2EnablerLambdaExecutionRoleArnSSMParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/iam/lambda-execution-roles/enabler-arn"
+      Name: "/internship/tasks/ka-me-ha-me-ha/global/iam/lambda-execution-roles/enabler-arn"
       Value: !GetAtt USWest2EnablerLambdaExecutionRole.Arn
       Type: String
       Tier: Standard 
@@ -109,7 +114,7 @@ Resources:
   CustomResourceS3ReplicationRoleArnSSMParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: "/internship/tasks/ka-me-ha-me-ha/iam/custom/resources/s3-replication-rule-execution-role-arn"
+      Name: "/internship/tasks/ka-me-ha-me-ha/global/iam/lambda-execution-roles/custom-resources/s3-replication-rule-execution-role-arn"
       Value: !GetAtt CustomResourceS3ReplicationRuleRole.Arn
       Type: String
       Tier: Standard 
@@ -117,7 +122,7 @@ Resources:
   CustomResourceS3InitializationRoleArnSSMParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: "/internship/tasks/ka-me-ha-me-ha/iam/custom/resources/s3-initialization-execution-role-arn"
+      Name: "/internship/tasks/ka-me-ha-me-ha/global/iam/lambda-execution-roles/custom-resources/s3-initialization-execution-role-arn"
       Value: !GetAtt CustomResourceS3InitializationRole.Arn
       Type: String
       Tier: Standard 

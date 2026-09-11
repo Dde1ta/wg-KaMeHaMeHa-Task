@@ -1,0 +1,38 @@
+Parameters:
+  BucketName:
+    Type: String
+    Description: "Name of the bucket"
+    Default: ka-me-ha-me-ha
+  
+  SSEKMSKey:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: "kms key used for bucket encryption"
+    Default: /internship/tasks/ka-me-ha-me-ha/ap-south-1/kms/sse-multi-region-key/arn
+
+Resources:
+  
+  USWest2S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: true
+            ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref SSEKMSKey
+      BucketName: !Sub
+        - "${Name}-${AccountID}-${Region}-an"
+        - Name: !Ref BucketName
+          AccountID: !Ref AWS::AccountId
+          Region: !Ref AWS::Region
+      BucketNamespace: account-regional
+      VersioningConfiguration:
+        Status: Enabled
+
+  USWest2S3BucketNameSSMParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/internship/task/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
+      Value: !Ref USWest2S3Bucket
+      Type: String
+      
