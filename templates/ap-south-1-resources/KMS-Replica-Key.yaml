@@ -1,0 +1,67 @@
+Parameters:
+  KMSMainKeyArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /internship/task/kamehameha/us-west-2/kms/sse-multi-region-key/arn
+  
+  CreateReplicaKey:
+    Type: String
+    AllowedValues: ["True", "False"]
+    Default: "False"
+
+Conditions:
+  IsCreateReplicaKeyTrue: !Equals [!Ref CreateReplicaKey, 'True']
+
+Resources:
+  KMSReplicaKey:
+    Type: AWS::KMS::ReplicaKey
+    Condition: IsCreateReplicaKeyTrue
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      PrimaryKeyArn: !Ref KMSMainKeyArn
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statements:
+          - Effect: "Allow"
+            Principal:
+              AWS:
+                - !Sub
+                  - "arn:${awsPartition}:iam::${accountId}:root"
+                  - accountId: !Ref AWS::AccountId
+                    awsPartition: !Ref AWS::Partition
+            Action:
+              - "kms:*"
+            Resource: "*"
+
+  KMSReplicaKeyArnOutputToSSM:
+    Type: AWS::SSM::Parameter
+    Condition: IsCreateReplicaKeyTrue
+    Properties:
+      Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/kms/sse-multi-region-key/arn"
+      Value: !GetAtt KMSReplicaKey.Arn
+      Type: "String"
+
+  KMSReplicaKeyIdOutputToSSM:
+    Type: AWS::SSM::Parameter
+    Condition: IsCreateReplicaKeyTrue
+    Properties:
+      Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/kms/sse-multi-region-key/id"
+      Value: !GetAtt KMSReplicaKey.KeyId
+      Type: "String"
+
+Outputs:
+  
+  KMSReplicaKeyId:
+    Description: "Replica Key Id for S3 SSE-KMS"
+    Condition: IsCreateReplicaKeyTrue
+    Value: !GetAtt KMSReplicaKey.KeyId
+    Export: 
+      Name: kamehameha-ap-south-1-kms-replica-key-id
+  
+  KMSReplicaKeyArn:
+    Description: "Replica Key Arn for S3 SSE-KMS"
+    Condition: IsCreateReplicaKeyTrue
+    Value: !GetAtt KMSReplicaKey.Arn
+    Export: 
+      Name: kamehameha-ap-south-1-kms-replica-key-arn
+    

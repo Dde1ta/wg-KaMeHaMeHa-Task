@@ -1,0 +1,54 @@
+Parameters:
+  CreateReplicaKey:
+    Type: String
+    AllowedValues: ["True", "False"]
+    Default: "False"
+
+Conditions:
+  IsCreateReplicaKeyTrue: !Equals [!Ref CreateReplicaKey, 'True']
+
+Resources:
+  KMSMainKey:
+    Type: AWS::KMS::Key
+    Condition: IsCreateReplicaKeyTrue
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: This Key is for S3 Server Side Encryption - KMS
+      MultiRegion: true
+      Tags:
+          - Key: task
+            Value: Ka-Me-Ha-Me-Ha
+
+  KMSMainKeyArnOutputToParameterStore:
+    Type: AWS::SSM::Parameter
+    Condition: IsCreateReplicaKeyTrue
+    Properties:
+      Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/kms/sse-multi-region-key/arn"
+      Value: !GetAtt KMSMainKey.Arn
+      Type: String
+  
+  KMSMainKeyIDOutputToParameterStore:
+    Type: AWS::SSM::Parameter
+    Condition: IsCreateReplicaKeyTrue
+    Properties:
+      Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/kms/sse-multi-region-key/id"
+      Value: !GetAtt KMSMainKey.KeyId
+      Type: String
+    
+Outputs:
+    
+  KMSMainKeyArnOutput:
+    Description: KMS Key ARN for S3 SSE-KMS
+    Condition: IsCreateReplicaKeyTrue
+    Value: !GetAtt KMSMainKey.Arn
+    Export: 
+      Name: kamehameha-us-west-2-kms-multi-region-key-arn
+
+  KMSMainKeyIdOutput:
+    Description: KMS Key ID for S3 SSE-KMS
+    Condition: IsCreateReplicaKeyTrue
+    Value: !GetAtt KMSMainKey.KeyId
+    Export: 
+      Name: kamehameha-us-west-2-kms-multi-region-key-id
+

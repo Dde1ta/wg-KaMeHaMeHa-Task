@@ -1,5 +1,5 @@
 """
-I Do not need this -> just keep it like this for know.
+I Do not need this -> just keep it like this for now.
 """
 
 import boto3
@@ -17,7 +17,7 @@ def get_valid_region_list() -> List[str]:
     return region_list
 
 
-def validate_regions(*request_regions: str) -> bool:
+def validate_regions(*request_regions: str, event, context) -> bool:
     global valid_region_names
 
     scanned_regions = {}
@@ -25,11 +25,19 @@ def validate_regions(*request_regions: str) -> bool:
     for region in request_regions:
         if region in validate_regions:
             if region in scanned_regions:
-                send()  # Send Failure duplicate Regions in request
+                send(event=event,
+                     context=context,
+                     responseStatus=FAILED,
+                     reason=f"Failed: Duplicate Region in Replica Region List {region}"
+                     )  # Send Failure duplicate Regions in request
 
                 return False
         else:
-            send()  # Send Failure: Invalid / Unavailable Region in request
+            send(event=event,
+                 context=context,
+                 responseStatus=FAILED,
+                 reason=f"Failed: Invalid / Unavailable Region {region} in Request"
+                 )  # Send Failure: Invalid / Unavailable Region in request
 
             return False
 
@@ -45,9 +53,13 @@ def main(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         Handles the creation of a key across many regions
 
         Properties:
-          "MainRegion": String,
+          "MainKey":
+            "Region": "string,
+            "Policy":
+
           "ReplicaRegions":
             - String(s)
+
 
         Data :
             Outputs:
@@ -60,7 +72,10 @@ def main(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     event_type = event.get('RequestType')
 
     if properties == {}:
-        send()  # Send Failure :- Properties missing
+        send(event=event,
+             context=context,
+             responseStatus=FAILED,
+             reason="Failed: Properties Are Missing")  # Send Failure :- Properties missing
 
         return {
             "statusCode": 500,
@@ -71,17 +86,17 @@ def main(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     main_region = properties.get("MainRegion", "")
 
-    if not validate_regions(main_region):
+    if not validate_regions(main_region, event=event, context=context):
         return {
             "statusCode": 500,
             "body": {
-                "message": "Failed: MainRegion Property Invalif"
+                "message": "Failed: MainRegion Property Invalid"
             }
         }
 
     replica_regions = properties.get("ReplicaRegions", [""])
 
-    if not validate_regions(*replica_regions):
+    if not validate_regions(*replica_regions, event=event, context=context):
         return {
             "statusCode": 500,
             "body": {
@@ -90,7 +105,11 @@ def main(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
 
     if main_region in replica_regions:
-        send()  # Send Failure :- Main Region in replica region
+        send(event=event,
+             context=context,
+             responseStatus=FAILED,
+             reason=f"Failed: Main Region mentioned in Replica region List"
+             )  # Send Failure :- Main Region in replica region
 
         return {
             "statusCode": 500,
@@ -102,10 +121,12 @@ def main(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     try :
 
         if event_type == "Create":
-            ...
+            kms_client.create_key(
+
+            )
 
         elif event_type == "Update":
-            ...
+            send()
 
         elif event_type == "Delete":
             ...
