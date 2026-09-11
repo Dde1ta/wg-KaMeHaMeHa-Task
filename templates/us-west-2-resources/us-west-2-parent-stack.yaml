@@ -20,11 +20,18 @@ Parameters:
     Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/us-west-2-resources/KMS-Main-Key.yaml"
     Description: "Template url of sse-kms-multi-region-key"
   
+  CustomResourceTemplateUrl:
+    Type: String
+    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/us-west-2-resources/S3-intialization-Custom-Resource.yaml"
+    Description: "Template url of custom resource"
+  
   CreateKMSKey:
     Type: String
     Default: "False"
     AllowedValues: ["True", "False"]
     Description: "Make Server Side Encryption Key?"
+
+
 
 Resources:
   
@@ -64,4 +71,12 @@ Resources:
         EnablerLambdaFunctionEnvObjectKey: teenage-mutant-ninja-turtles.json
 
       
-  
+  CustomResource:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: !Ref CustomResourceTemplateUrl
+      Parameters:
+        S3BucketName: !GetAtt USWest2S3Bucket.Outputs.USWest2S3BucketName
+      
