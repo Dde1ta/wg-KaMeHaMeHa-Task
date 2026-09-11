@@ -23,6 +23,8 @@ Resources:
   KMSMainKeyArnOutputToParameterStore:
     Type: AWS::SSM::Parameter
     Condition: IsCreateMultiRegionKeyTrue
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/kms/sse-multi-region-key/arn"
       Value: !GetAtt KMSMainKey.Arn
@@ -32,6 +34,8 @@ Resources:
   KMSMainKeyIDOutputToParameterStore:
     Type: AWS::SSM::Parameter
     Condition: IsCreateMultiRegionKeyTrue
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/kms/sse-multi-region-key/id"
       Value: !GetAtt KMSMainKey.KeyId
