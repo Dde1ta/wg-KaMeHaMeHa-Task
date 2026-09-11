@@ -27,6 +27,7 @@ Resources:
       Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/kms/sse-multi-region-key/arn"
       Value: !GetAtt KMSMainKey.Arn
       Type: String
+      Tier: Standard
   
   KMSMainKeyIDOutputToParameterStore:
     Type: AWS::SSM::Parameter
@@ -35,6 +36,7 @@ Resources:
       Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/kms/sse-multi-region-key/id"
       Value: !GetAtt KMSMainKey.KeyId
       Type: String
+      Tier: Standard
     
 Outputs:
     

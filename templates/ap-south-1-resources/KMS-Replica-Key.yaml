@@ -40,6 +40,7 @@ Resources:
       Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/kms/sse-multi-region-key/arn"
       Value: !GetAtt KMSReplicaKey.Arn
       Type: "String"
+      Tier: Standard
 
   KMSReplicaKeyIdOutputToSSM:
     Type: AWS::SSM::Parameter
@@ -48,6 +49,7 @@ Resources:
       Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/kms/sse-multi-region-key/id"
       Value: !GetAtt KMSReplicaKey.KeyId
       Type: "String"
+      Tier: Standard
 
 Outputs:
   

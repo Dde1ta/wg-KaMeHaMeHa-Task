@@ -1,0 +1,63 @@
+Parameters:
+  EnablerLambdaFunctionExecutionRoleArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/internship/tasks/ka-me-ha-me-ha/us-west-2/iam/lambda-execution-roles/enabler-arn"
+    Description: "The name ssm parameter which stores ka-me-ha-me-ha-enabler function execution role arn"
+  
+  EnablerLambdaFunctionCodeBucket:
+    Type: String
+    Default: my-indian-cloudformation-templates-295345165437-ap-south-1-an
+    Description: "The name of the bucket stores ka-me-ha-me-ha-enabler function code zip file"
+  
+  EnablerLambdaFunctionCodeZipObjectKey:
+    Type: String
+    Default: KaMeHaMeHa/Main/lambda-code-zips/us-west-2-ka-me-ha-me-ha-enabler.zip
+    Description: "The object key of the zip file of the code for ka-me-ha-me-ha-enabler function"
+  
+  EnablerLambdaFunctionEnvBucketName:
+    Type: String
+    Default: <TO DO Insert S3 Bucket Name>
+    Description: "The Environment variable BUCKET_NAME for ka-me-ha-me-ha-enabler function"
+  
+  EnablerLambdaFunctionEnvObjectKey:
+    Type: String
+    Default: <TO DO Insert S3 Object Key>
+    Description: "The Environment variable OBJECT_KEY for ka-me-ha-me-ha-enabler function"
+  
+  DynamodbStreamArn:
+    Type: String
+    Description: "Arn of the dynamodb stream"
+    Default: "NotSet"
+
+Conditions:
+  DynamodbStreamArnSetting: !Not [!Equals [!Ref DynamodbStreamArn, "NotSet"]] 
+    
+Resources:
+  EnablerLambdaFunction:
+    Type: AWS::Lambda::Function
+    Condition: DynamodbStreamArnSetting
+    Properties:
+      Code: 
+        S3Bucket: !Ref EnablerLambdaFunctionCodeBucket
+        S3Key: !Ref EnablerLambdaFunctionCodeZipObjectKey
+      Role: !Ref EnablerLambdaFunctionExecutionRoleArn
+      FunctionName: ka-me-ha-me-ha-enabler
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref EnablerLambdaFunctionEnvBucketName
+          OBJECT_KEY: !Ref EnablerLambdaFunctionEnvObjectKey
+      Description: "Task Required lambda function for the s3 bucket object manipulation"
+      Runtime: python3.14
+      Handler: handler.main
+  
+  EnablerLambdaFunctionEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Condition: DynamodbStreamArnSetting
+    Properties:
+      FunctionName: !Ref EnablerLambdaFunction
+      Enabled: true
+      EventSourceArn: !Ref DynamodbStreamArn
+      StartingPosition: LATEST
+      FilterCriteria:
+        Filters:
+          - Pattern: '{"eventName": ["INSERT", "MODIFY"]}'
