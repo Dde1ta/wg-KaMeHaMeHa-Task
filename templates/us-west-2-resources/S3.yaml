@@ -3,14 +3,13 @@ Parameters:
     Type: String
     Description: "Name of the bucket"
     Default: ka-me-ha-me-ha
-  
+
   SSEKMSKey:
     Type: AWS::SSM::Parameter::Value<String>
     Description: "kms key used for bucket encryption"
     Default: /internship/tasks/ka-me-ha-me-ha/ap-south-1/kms/sse-multi-region-key/arn
 
 Resources:
-  
   USWest2S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -35,4 +34,11 @@ Resources:
       Name: "/internship/task/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
       Value: !Ref USWest2S3Bucket
       Type: String
-      
+
+Outputs:
+  
+  USWest2S3BucketName:
+    Value: !Ref USWest2S3Bucket
+    Description: "Name of the bucket made in us-west-2"
+    Export: 
+      Name: "kamehameha-us-west-2-bucket-name"

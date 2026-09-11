@@ -5,6 +5,13 @@ import json
 s3_client = boto3.client('s3')
 
 def main(event, context):
+    """
+        Properties:
+          BucketName: String
+          S3ObjectKey: String
+          JSONKeys:
+            - String 
+    """
     properties = event.get('ResourceProperties', {})
 
     if properties == {}:

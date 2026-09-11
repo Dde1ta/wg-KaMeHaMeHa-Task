@@ -1,0 +1,38 @@
+Parameters:
+  S3BucketName:
+    Description: "Name for bucket One"
+    Type: String
+    Default: test-bucket-one-for-kamehameha
+
+  LambdaCodeBucket:
+    Description: "Bucket with the code of the lambda function"
+    Type: String
+    Default: my-indian-cloudformation-templates-295345165437-ap-south-1-an
+  
+  LambdaCodeZipObjectKey:
+    Description: "Object key of the zip file for the code"
+    Type: String
+    Default: KaMeHaMeHa/Main/lambda-code-zips/custom-resource-s3-initialization.zip
+
+Resources:
+  CustomResourceForS3InitializationLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref LambdaCodeZipObjectKey
+      Role: "{{resolve:ssm:/internship/tasks/ka-me-ha-me-ha/global/iam/lambda-execution-roles/custom-resources/s3-initialization-execution-role-arn}}"
+      Handler: handler.main
+      Runtime: python3.14
+      PackageType: Zip
+
+  MayKaMeHaMeHaTestCustomReplicationResourceBucketOne:
+    Type: Custom::LambdaReplicationResource
+    Properties:
+      ServiceToken: !GetAtt CustomResourceForS3InitializationLambdaFunction.Arn
+      BucketName: !Ref S3BucketName
+      S3ObjectKey: teenage-mutant-ninja-turtles.json
+      JSONKeys:
+        - previous
+        - current 
+      

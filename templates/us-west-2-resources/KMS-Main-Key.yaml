@@ -1,16 +1,16 @@
 Parameters:
-  CreateReplicaKey:
+  CreateMultiRegionKey:
     Type: String
     AllowedValues: ["True", "False"]
     Default: "False"
 
 Conditions:
-  IsCreateReplicaKeyTrue: !Equals [!Ref CreateReplicaKey, 'True']
+  IsCreateMultiRegionKeyTrue: !Equals [!Ref CreateMultiRegionKey, 'True']
 
 Resources:
   KMSMainKey:
     Type: AWS::KMS::Key
-    Condition: IsCreateReplicaKeyTrue
+    Condition: IsCreateMultiRegionKeyTrue
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
@@ -22,7 +22,7 @@ Resources:
 
   KMSMainKeyArnOutputToParameterStore:
     Type: AWS::SSM::Parameter
-    Condition: IsCreateReplicaKeyTrue
+    Condition: IsCreateMultiRegionKeyTrue
     Properties:
       Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/kms/sse-multi-region-key/arn"
       Value: !GetAtt KMSMainKey.Arn
@@ -31,7 +31,7 @@ Resources:
   
   KMSMainKeyIDOutputToParameterStore:
     Type: AWS::SSM::Parameter
-    Condition: IsCreateReplicaKeyTrue
+    Condition: IsCreateMultiRegionKeyTrue
     Properties:
       Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/kms/sse-multi-region-key/id"
       Value: !GetAtt KMSMainKey.KeyId
@@ -42,14 +42,14 @@ Outputs:
     
   KMSMainKeyArnOutput:
     Description: KMS Key ARN for S3 SSE-KMS
-    Condition: IsCreateReplicaKeyTrue
+    Condition: IsCreateMultiRegionKeyTrue
     Value: !GetAtt KMSMainKey.Arn
     Export: 
       Name: kamehameha-us-west-2-kms-multi-region-key-arn
 
   KMSMainKeyIdOutput:
     Description: KMS Key ID for S3 SSE-KMS
-    Condition: IsCreateReplicaKeyTrue
+    Condition: IsCreateMultiRegionKeyTrue
     Value: !GetAtt KMSMainKey.KeyId
     Export: 
       Name: kamehameha-us-west-2-kms-multi-region-key-id

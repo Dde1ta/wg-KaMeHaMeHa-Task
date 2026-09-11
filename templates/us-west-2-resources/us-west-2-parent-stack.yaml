@@ -1,0 +1,67 @@
+Parameters:
+  
+  DynamodbTemplateURL:
+    Type: String
+    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/us-west-2-resources/DynamoDB.yaml"
+    Description: "Template url of DynamoDB Resource"
+
+  BucketTemplateUrl:
+    Type: String
+    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/us-west-2-resources/S3.yaml"
+    Description: "Template url of s3 bucket"
+
+  LambdaFunctionTemplateUrl:
+    Type: String
+    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/us-west-2-resources/Lambda.yaml"
+    Description: "Template url of enabler lambda function"
+  
+  SSEKMSKeyTemplateUrl:
+    Type: String
+    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/us-west-2-resources/KMS-Main-Key.yaml"
+    Description: "Template url of sse-kms-multi-region-key"
+  
+  CreateKMSKey:
+    Type: String
+    Default: "False"
+    AllowedValues: ["True", "False"]
+    Description: "Make Server Side Encryption Key?"
+
+Resources:
+  
+  KMSMultiRegionKeyForSSEKMS:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: !Ref SSEKMSKeyTemplateUrl
+      Parameters:
+        CreateMultiRegionKey : !Ref CreateKMSKey
+  
+  DynamoDBTableWithStream:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: !Ref DynamodbTemplateURL
+  
+  USWest2S3Bucket:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    DependsOn: KMSMultiRegionKeyForSSEKMS
+    Properties:
+      TemplateURL: !Ref BucketTemplateUrl
+      
+  EnablerLambdaFunction:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: !Ref LambdaFunctionTemplateUrl
+      Parameters:
+        DynamodbStreamArn: !GetAtt DynamoDBTableWithStream.Outputs.DynamoDBTableStreamArn
+        EnablerLambdaFunctionEnvBucketName: !GetAtt USWest2S3Bucket.Outputs.USWest2S3BucketName
+        EnablerLambdaFunctionEnvObjectKey: teenage-mutant-ninja-turtles.json
+
+      
+  
