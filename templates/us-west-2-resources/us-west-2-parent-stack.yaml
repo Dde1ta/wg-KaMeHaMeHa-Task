@@ -2,27 +2,27 @@ Parameters:
   
   DynamodbTemplateURL:
     Type: String
-    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/us-west-2-resources/DynamoDB.yaml"
+    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/templates/DynamoDB.yaml"
     Description: "Template url of DynamoDB Resource"
 
   BucketTemplateUrl:
     Type: String
-    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/us-west-2-resources/S3.yaml"
+    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/templates/S3.yaml"
     Description: "Template url of s3 bucket"
 
   LambdaFunctionTemplateUrl:
     Type: String
-    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/us-west-2-resources/Lambda.yaml"
+    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/templates/Lambda.yaml"
     Description: "Template url of enabler lambda function"
   
   SSEKMSKeyTemplateUrl:
     Type: String
-    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/us-west-2-resources/KMS-Main-Key.yaml"
+    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/templates/KMS-Main-Key.yaml"
     Description: "Template url of sse-kms-multi-region-key"
   
   CustomResourceTemplateUrl:
     Type: String
-    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/us-west-2-resources/S3-intialization-Custom-Resource.yaml"
+    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/templates/S3-intialization-Custom-Resource.yaml"
     Description: "Template url of custom resource"
   
   CreateKMSKey:
@@ -30,8 +30,6 @@ Parameters:
     Default: "False"
     AllowedValues: ["True", "False"]
     Description: "Make Server Side Encryption Key?"
-
-
 
 Resources:
   

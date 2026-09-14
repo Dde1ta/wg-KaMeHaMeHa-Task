@@ -1,0 +1,35 @@
+Parameters:
+    
+  CreateKMSReplicaKey:
+    Type: String
+    Default: "False"
+    AllowedValues: ["True", "False"]
+    Description: "Make Server Side Encryption Key?"
+  
+  ReplicaKeyTemplateUrl:
+    Type: String
+    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/ap-south-1-resources/KMS-Replica-Key.yaml"
+    Description: "S3 Url of the template for Replica Key"
+
+  S3BucketTemplateUrl:
+    Type: String
+    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/ap-south-1-resources/S3.yaml"
+    Description: "S3 Url of the template for the S3 bucket"
+
+Resources:
+  
+  ReplicaKey:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      Parameters:
+        CreateReplicaKey: !Ref CreateKMSReplicaKey
+      TemplateURL: !Ref ReplicaKeyTemplateUrl
+  
+  S3Bucket:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: !Ref S3BucketTemplateUrl 
