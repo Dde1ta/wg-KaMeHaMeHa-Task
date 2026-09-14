@@ -7,7 +7,7 @@ Parameters:
   SSEKMSKey:
     Type: AWS::SSM::Parameter::Value<String>
     Description: "kms key used for bucket encryption"
-    Default: /internship/tasks/ka-me-ha-me-ha/ap-south-1/kms/sse-multi-region-key/arn
+    Default: /internship/tasks/ka-me-ha-me-ha/us-west-2/kms/sse-multi-region-key/arn
 
 Resources:
   USWest2S3Bucket:

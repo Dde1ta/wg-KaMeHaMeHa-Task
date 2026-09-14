@@ -26,10 +26,11 @@ Resources:
       Runtime: python3.14
       PackageType: Zip
 
-  MayKaMeHaMeHaTestCustomReplicationResourceBucketOne:
+  BucketInitialization:
     Type: Custom::LambdaReplicationResource
     Properties:
       ServiceToken: !GetAtt CustomResourceForS3InitializationLambdaFunction.Arn
+      ServiceTimeout: 200
       BucketName: !Ref S3BucketName
       S3ObjectKey: teenage-mutant-ninja-turtles.json
       JSONKeys:

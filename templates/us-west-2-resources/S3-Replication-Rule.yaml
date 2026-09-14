@@ -1,0 +1,71 @@
+Parameters:
+    
+  DestinationBucketName:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/internship/task/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
+    Description: "Name of the Destination bucket"
+  
+  CustomResourceExecutionRoleArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/internship/tasks/ka-me-ha-me-ha/global/iam/lambda-execution-roles/custom-resources/s3-replication-rule-execution-role-arn"
+    Description: "Arn of the execution role for the lambda function"
+
+  SourceBucketName:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/internship/task/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
+    Description: "Name of the Source bucket"
+  
+  ReplicationRoleArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/internship/tasks/ka-me-ha-me-ha/global/iam/bucket-replication-roles/us-west-2-to-ap-south-1"
+    Description: "Arn of the role used by S3 for replication"
+
+  CustomResourceLambdaCodeBucket:
+    Type: String
+    Description: "Name of the bucket in which the lambda code is stored"
+    Default: cloudformation-us-west-2-templates-295345165437-us-west-2-an
+
+  CustomResourceLambdaCodeZipObjectKey:
+    Type: String
+    Description: "The object key of the zip file"
+    Default: kamehameha/lambda-code-zips/custom-resource-s3-replication-rule.zip
+
+  SSEKMSKey:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/internship/tasks/ka-me-ha-me-ha/us-west-2/kms/sse-multi-region-key/arn"
+    Description: "Key used for encryption"
+
+Resources:
+  
+  ReplicationRuleLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !Ref CustomResourceLambdaCodeBucket
+        S3Key: !Ref CustomResourceLambdaCodeZipObjectKey
+      Role: !Ref CustomResourceExecutionRoleArn
+      Handler: handler.main
+      Runtime: python3.14
+      PackageType: Zip
+    
+  ReplicationRule:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt ReplicationRuleLambdaFunction.Arn
+      ServiceTimeout: 200
+      BucketName: !Ref SourceBucketName
+      ReplicationConfiguration:
+        Role: !Ref ReplicationRoleArn
+        Rules:
+          - Destination:
+              Bucket: !Ref DestinationBucketName
+              EncryptionConfiguration:
+                ReplicaKmsKeyID: !Ref SSEKMSKey
+            Status: Enabled
+            Prefix: "*"
+            Priority: 1
+            DeleteMarkerReplication: 
+              Status: Enabled
+            SourceSelectionCriteria:
+              SseKmsEncryptedObjects:
+                Status: Enabled

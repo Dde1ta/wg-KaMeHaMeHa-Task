@@ -117,6 +117,13 @@ def main(event, context):
                 Key=object_key
             )
 
+            send(event=event,
+                context=context,
+                responseStatus=SUCCESS,
+                responseData={},
+                reason=f"Deleted File"
+            ) 
+
     except Exception as e:
         send(event=event,
             context=context,

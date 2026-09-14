@@ -1,3 +1,14 @@
+Parameters:
+  USWest2BucketName:
+    Type: String
+    Default: ka-me-ha-me-ha
+    Description: "Name of the bucket to be made in us-west-2"
+
+  APSouth1BucketName:
+    Type: String
+    Default: ka-me-ha-me-ha
+    Description: "Name of the bucket to be made in us-west-2"
+
 Resources:
   USWest2EnablerLambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -9,7 +20,7 @@ Resources:
             Principal:
               Service:
                 - lambda.amazonaws.com
-            Action: sts:assumeRole
+            Action: sts:AssumeRole
       RoleName: KaMeHaMeHa-us-west-2-Enabler-Lambda-Execution-Role
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
@@ -35,6 +46,7 @@ Resources:
           - Effect: "Allow"
             Action:
               - "kms:Decrypt"
+              - "kms:GenerateDataKey"
             Resource: "*"
 
       PolicyName: KaMeHaMeHa-us-west-2-Enabler-Lambda-Execution-Role-Policy
@@ -51,7 +63,7 @@ Resources:
             Principal:
               Service:
                 - lambda.amazonaws.com
-            Action: sts:assumeRole
+            Action: sts:AssumeRole
       RoleName: KaMeHaMeHa-Custom-Resource-Replication-Rule-Lambda-Role
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
@@ -82,7 +94,7 @@ Resources:
             Principal:
               Service:
                 - lambda.amazonaws.com
-            Action: sts:assumeRole
+            Action: sts:AssumeRole
       RoleName: KaMeHaMeHa-Custom-Resource-S3-Initialization-Lambda-Role
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
@@ -99,17 +111,140 @@ Resources:
               - s3:GetObject
               - s3:DeleteObject
             Resource: "*"
+
+          - Effect: "Allow"
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+
       PolicyName: KaMeHaMeHa-Custom-Resource-S3-Initialization-Lambda-Role-Policy
       Roles:
         - !Ref CustomResourceS3InitializationRole
-  
+
+  USWest2ToAPSouth1ReplicationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - s3.amazonaws.com
+            Action: "sts:AssumeRole"
+
+      RoleName: us-west-2-To-ap-south-1-replication-role
+
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - s3:GetReplicationConfiguration
+                  - s3:ListBucket
+                Resource:
+                  - !Sub
+                    - "arn:${Partition}:s3:::${BucketName}-${AccountID}-${Region}-an"
+                    - BucketName: !Ref USWest2BucketName
+                      AccountID: !Ref AWS::AccountId
+                      Region: us-west-1
+                      Partition: !Ref AWS::Partition
+
+              - Effect: "Allow"
+                Action:
+                  - s3:GetObjectVersionForReplication
+                  - s3:GetObjectVersionAcl
+                  - s3:GetObjectVersionTagging
+                Resource:
+                  - !Sub
+                    - "arn:${Partition}:s3:::${BucketName}-${AccountID}-${Region}-an"
+                    - BucketName: !Ref USWest2BucketName
+                      AccountID: !Ref AWS::AccountId
+                      Region: us-west-1
+                      Partition: !Ref AWS::Partition
+
+              - Effect: "Allow"
+                Action:
+                  - s3:ReplicateObject
+                  - s3:ReplicateTags
+                  - s3:ReplicateDelete
+                Resource:
+                  - !Sub
+                    - "arn:${Partition}:s3:::${BucketName}-${AccountID}-${Region}-an"
+                    - BucketName: !Ref APSouth1BucketName
+                      AccountID: !Ref AWS::AccountId
+                      Region: ap-south-1
+                      Partition: !Ref AWS::Partition
+
+          PolicyName: Allow-Read-To-Bucket-One-For-Two-Inline
+
+  APSouth1ToUSWest2ReplicationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - s3.amazonaws.com
+            Action: "sts:AssumeRole"
+
+      RoleName: ap-south-1-to-us-west-2-replication-role
+
+      Policies:
+        - PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - s3:GetReplicationConfiguration
+                  - s3:ListBucket
+                Resource:
+                  - !Sub
+                    - "arn:${Partition}:s3:::${BucketName}-${AccountID}-${Region}-an"
+                    - BucketName: !Ref APSouth1BucketName
+                      AccountID: !Ref AWS::AccountId
+                      Region: ap-south-1
+                      Partition: !Ref AWS::Partition
+
+              - Effect: "Allow"
+                Action:
+                  - s3:GetObjectVersionForReplication
+                  - s3:GetObjectVersionAcl
+                  - s3:GetObjectVersionTagging
+                Resource:
+                  - !Sub
+                    - "arn:${Partition}:s3:::${BucketName}-${AccountID}-${Region}-an"
+                    - BucketName: !Ref APSouth1BucketName
+                      AccountID: !Ref AWS::AccountId
+                      Region: ap-south-1
+                      Partition: !Ref AWS::Partition
+
+              - Effect: "Allow"
+                Action:
+                  - s3:ReplicateObject
+                  - s3:ReplicateTags
+                  - s3:ReplicateDelete
+                Resource:
+                  - !Sub
+                    - "arn:${Partition}:s3:::${BucketName}-${AccountID}-${Region}-an"
+                    - BucketName: !Ref USWest2BucketName
+                      AccountID: !Ref AWS::AccountId
+                      Region: us-west-1
+                      Partition: !Ref AWS::Partition
+
+          PolicyName: Allow-Read-To-Bucket-Two-For-One-Inline
+
   USWest2EnablerLambdaExecutionRoleArnSSMParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Name: "/internship/tasks/ka-me-ha-me-ha/global/iam/lambda-execution-roles/enabler-arn"
       Value: !GetAtt USWest2EnablerLambdaExecutionRole.Arn
       Type: String
-      Tier: Standard 
+      Tier: Standard
 
   CustomResourceS3ReplicationRoleArnSSMParameter:
     Type: AWS::SSM::Parameter
@@ -117,16 +252,29 @@ Resources:
       Name: "/internship/tasks/ka-me-ha-me-ha/global/iam/lambda-execution-roles/custom-resources/s3-replication-rule-execution-role-arn"
       Value: !GetAtt CustomResourceS3ReplicationRuleRole.Arn
       Type: String
-      Tier: Standard 
-  
+      Tier: Standard
+
   CustomResourceS3InitializationRoleArnSSMParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Name: "/internship/tasks/ka-me-ha-me-ha/global/iam/lambda-execution-roles/custom-resources/s3-initialization-execution-role-arn"
       Value: !GetAtt CustomResourceS3InitializationRole.Arn
       Type: String
-      Tier: Standard 
+      Tier: Standard
 
+  USWest2ToAPSouth1ReplicationRoleArnSSMParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/internship/tasks/ka-me-ha-me-ha/global/iam/bucket-replication-roles/us-west-2-to-ap-south-1"
+      Value: !GetAtt USWest2ToAPSouth1ReplicationRole.Arn
+      Type: String
+
+  APSouth1ToUSWest2ReplicationRoleArnSSMParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/internship/tasks/ka-me-ha-me-ha/global/iam/bucket-replication-roles/ap-south-1-to-us-west-2"
+      Value: !GetAtt APSouth1ToUSWest2ReplicationRole.Arn
+      Type: String
 
 Outputs:
   EnablerLambdaFunctionExecutionRoleName:
