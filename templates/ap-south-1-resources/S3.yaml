@@ -1,0 +1,63 @@
+Parameters:
+  SSEKMSKey:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /internship/tasks/ka-me-ha-me-ha/ap-south-1/kms/sse-multi-region-key/arn
+    Description: "Key to be used for server-side-encryption"
+
+  BucketName:
+    Type: String
+    Description: "Name of the bucket"
+    Default: ka-me-ha-me-ha
+  
+  ReplicationRole:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/internship/tasks/ka-me-ha-me-ha/global/iam/bucket-replication-roles/ap-south-1-to-us-west-2"
+    Description: "Role S3 will use to replicate to us-west-2 bucket"
+  
+  ReplicationBucketName:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/internship/task/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
+    Description: "The Bucket to replicate to"
+
+Resources:
+  
+  APSouth1S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub
+        - "${Name}-${AccountID}-${Region}-an"
+        - Name: !Ref BucketName
+          AccountID: !Ref AWS::AccountId
+          Region: !Ref AWS::Region
+          
+      BucketNamespace: account-regional
+
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: true
+            ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref SSEKMSKey
+      
+      ReplicationConfiguration:
+        Role: !Ref ReplicationRole
+        Rules:
+          - Destination:
+              Bucket: !Ref ReplicationBucketName
+              EncryptionConfiguration:
+                ReplicaKmsKeyID: !Ref SSEKMSKey
+            Status: Enabled
+            Prefix: "*"
+            Priority: 1
+            DeleteMarkerReplication: 
+              Status: Enabled
+            SourceSelectionCriteria:
+              SseKmsEncryptedObjects:
+                Status: Enabled
+  
+  APSouth12S3BucketNameSSMParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/internship/task/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
+      Value: !Ref APSouth1S3Bucket
+      Type: String
