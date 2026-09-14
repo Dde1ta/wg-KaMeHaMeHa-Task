@@ -2,28 +2,23 @@ Parameters:
   
   DynamodbTemplateURL:
     Type: String
-    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/templates/DynamoDB.yaml"
+    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/main/us-west-2/DynamoDB.yaml"
     Description: "Template url of DynamoDB Resource"
 
   BucketTemplateUrl:
     Type: String
-    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/templates/S3.yaml"
+    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/main/us-west-2/S3.yaml"
     Description: "Template url of s3 bucket"
 
   LambdaFunctionTemplateUrl:
     Type: String
-    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/templates/Lambda.yaml"
+    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/main/us-west-2/Lambda.yaml"
     Description: "Template url of enabler lambda function"
   
   SSEKMSKeyTemplateUrl:
     Type: String
-    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/templates/KMS-Main-Key.yaml"
+    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/main/us-west-2/KMS-Main-Key.yaml"
     Description: "Template url of sse-kms-multi-region-key"
-  
-  CustomResourceTemplateUrl:
-    Type: String
-    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/templates/S3-intialization-Custom-Resource.yaml"
-    Description: "Template url of custom resource"
   
   CreateKMSKey:
     Type: String
@@ -67,14 +62,3 @@ Resources:
         DynamodbStreamArn: !GetAtt DynamoDBTableWithStream.Outputs.DynamoDBTableStreamArn
         EnablerLambdaFunctionEnvBucketName: !GetAtt USWest2S3Bucket.Outputs.USWest2S3BucketName
         EnablerLambdaFunctionEnvObjectKey: teenage-mutant-ninja-turtles.json
-
-      
-  CustomResource:
-    Type: AWS::CloudFormation::Stack
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Retain
-    Properties:
-      TemplateURL: !Ref CustomResourceTemplateUrl
-      Parameters:
-        S3BucketName: !GetAtt USWest2S3Bucket.Outputs.USWest2S3BucketName
-      

@@ -8,12 +8,12 @@ Parameters:
   
   ReplicaKeyTemplateUrl:
     Type: String
-    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/ap-south-1-resources/KMS-Replica-Key.yaml"
+    Default: "https://cloudformation-ap-south-1-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/kamehameha/main/ap-south-1/KMS-Replica-Key.yaml"
     Description: "S3 Url of the template for Replica Key"
 
   S3BucketTemplateUrl:
     Type: String
-    Default: "https://my-indian-cloudformation-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/KaMeHaMeHa/Main/templates/ap-south-1-resources/S3.yaml"
+    Default: "https://cloudformation-ap-south-1-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/kamehameha/main/ap-south-1/S3.yaml"
     Description: "S3 Url of the template for the S3 bucket"
 
 Resources:
