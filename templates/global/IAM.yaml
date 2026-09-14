@@ -133,11 +133,10 @@ Resources:
               Service:
                 - s3.amazonaws.com
             Action: "sts:AssumeRole"
-
       RoleName: us-west-2-To-ap-south-1-replication-role
-
       Policies:
-        - PolicyDocument:
+        - PolicyName: Allow-Read-To-Bucket-One-For-Two-Inline
+          PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: "Allow"
@@ -145,12 +144,7 @@ Resources:
                   - s3:GetReplicationConfiguration
                   - s3:ListBucket
                 Resource:
-                  - !Sub
-                    - "arn:${Partition}:s3:::${BucketName}-${AccountID}-${Region}-an"
-                    - BucketName: !Ref USWest2BucketName
-                      AccountID: !Ref AWS::AccountId
-                      Region: us-west-1
-                      Partition: !Ref AWS::Partition
+                  - !Sub "arn:${AWS::Partition}:s3:::${USWest2BucketName}-${AWS::AccountId}-us-west-2-an"
 
               - Effect: "Allow"
                 Action:
@@ -158,12 +152,7 @@ Resources:
                   - s3:GetObjectVersionAcl
                   - s3:GetObjectVersionTagging
                 Resource:
-                  - !Sub
-                    - "arn:${Partition}:s3:::${BucketName}-${AccountID}-${Region}-an"
-                    - BucketName: !Ref USWest2BucketName
-                      AccountID: !Ref AWS::AccountId
-                      Region: us-west-1
-                      Partition: !Ref AWS::Partition
+                  - !Sub "arn:${AWS::Partition}:s3:::${USWest2BucketName}-${AWS::AccountId}-us-west-2-an/*"
 
               - Effect: "Allow"
                 Action:
@@ -171,14 +160,7 @@ Resources:
                   - s3:ReplicateTags
                   - s3:ReplicateDelete
                 Resource:
-                  - !Sub
-                    - "arn:${Partition}:s3:::${BucketName}-${AccountID}-${Region}-an"
-                    - BucketName: !Ref APSouth1BucketName
-                      AccountID: !Ref AWS::AccountId
-                      Region: ap-south-1
-                      Partition: !Ref AWS::Partition
-
-          PolicyName: Allow-Read-To-Bucket-One-For-Two-Inline
+                  - !Sub "arn:${AWS::Partition}:s3:::${APSouth1BucketName}-${AWS::AccountId}-ap-south-1-an/*"
 
   APSouth1ToUSWest2ReplicationRole:
     Type: AWS::IAM::Role
@@ -191,11 +173,10 @@ Resources:
               Service:
                 - s3.amazonaws.com
             Action: "sts:AssumeRole"
-
       RoleName: ap-south-1-to-us-west-2-replication-role
-
       Policies:
-        - PolicyDocument:
+        - PolicyName: Allow-Read-To-Bucket-Two-For-One-Inline
+          PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: "Allow"
@@ -203,12 +184,7 @@ Resources:
                   - s3:GetReplicationConfiguration
                   - s3:ListBucket
                 Resource:
-                  - !Sub
-                    - "arn:${Partition}:s3:::${BucketName}-${AccountID}-${Region}-an"
-                    - BucketName: !Ref APSouth1BucketName
-                      AccountID: !Ref AWS::AccountId
-                      Region: ap-south-1
-                      Partition: !Ref AWS::Partition
+                  - !Sub "arn:${AWS::Partition}:s3:::${APSouth1BucketName}-${AWS::AccountId}-ap-south-1-an"
 
               - Effect: "Allow"
                 Action:
@@ -216,12 +192,7 @@ Resources:
                   - s3:GetObjectVersionAcl
                   - s3:GetObjectVersionTagging
                 Resource:
-                  - !Sub
-                    - "arn:${Partition}:s3:::${BucketName}-${AccountID}-${Region}-an"
-                    - BucketName: !Ref APSouth1BucketName
-                      AccountID: !Ref AWS::AccountId
-                      Region: ap-south-1
-                      Partition: !Ref AWS::Partition
+                  - !Sub "arn:${AWS::Partition}:s3:::${APSouth1BucketName}-${AWS::AccountId}-ap-south-1-an/*"
 
               - Effect: "Allow"
                 Action:
@@ -229,14 +200,7 @@ Resources:
                   - s3:ReplicateTags
                   - s3:ReplicateDelete
                 Resource:
-                  - !Sub
-                    - "arn:${Partition}:s3:::${BucketName}-${AccountID}-${Region}-an"
-                    - BucketName: !Ref USWest2BucketName
-                      AccountID: !Ref AWS::AccountId
-                      Region: us-west-1
-                      Partition: !Ref AWS::Partition
-
-          PolicyName: Allow-Read-To-Bucket-Two-For-One-Inline
+                  - !Sub "arn:${AWS::Partition}:s3:::${USWest2BucketName}-${AWS::AccountId}-us-west-2-an/*"
 
   USWest2EnablerLambdaExecutionRoleArnSSMParameter:
     Type: AWS::SSM::Parameter

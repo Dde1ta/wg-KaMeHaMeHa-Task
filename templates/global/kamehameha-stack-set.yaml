@@ -1,10 +1,9 @@
 Parameters:
-  
   CreateReplicaKey:
     Type: String
     AllowedValues: ["True", "False"]
     Default: "False"
-  
+
   CreateMainKey:
     Type: String
     AllowedValues: ["True", "False"]
@@ -14,36 +13,35 @@ Parameters:
     Type: String
     Default: kamehameha-stack-set-admin-role
     Description: "Name of the role for the admin of stack sets"
-  
+
   StackSetExecutionRoleName:
     Type: String
     Default: kamehameha-stack-set-execution-role
     Description: "Name of the role for the execution of stack sets"
-  
+
   GlobalResourcesTemplateUrl:
     Type: String
     Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/main/global/IAM.yaml"
     Description: "Template for the resources deployed globaly"
-  
+
   USWest2ResourcesTemplateUrl:
     Type: String
     Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/main/us-west-2/us-west-2-parent-stack.yaml"
     Description: "Template for the resources deployed in us-west-2"
-  
+
   APSouth1ResourcesTemplateUrl:
     Type: String
     Default: "https://cloudformation-ap-south-1-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/kamehameha/main/ap-south-1/ap-south-1-parent-stack.yaml"
     Description: "Template for the resources deployed in us-west-2"
-  
+
   CustomResourcesTemplateUrl:
     Type: String
     Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/main/custom-resources/custom-resources-parent-stack.yaml"
     Description: "Template for the custom resources"
 
 Resources:
-
   StackSetAdminRole:
-    Type: AWS::IAM::Role  
+    Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -65,14 +63,14 @@ Resources:
                 Action:
                   - sts:AssumeRole
                 Resource:
-                  - !Sub 
-                    - 'arn:*:iam::*:role/${ExecutionRoleName}'
+                  - !Sub
+                    - "arn:*:iam::*:role/${ExecutionRoleName}"
                     - ExecutionRoleName: !Ref StackSetExecutionRoleName
-  
+
   StackSetExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      AssumeRolePolicyDocument: 
+      AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: "Allow"
@@ -80,32 +78,25 @@ Resources:
             Principal:
               AWS:
                 - !GetAtt StackSetAdminRole.Arn
-      
+
       Description: Role For execution of Stack Sets
       RoleName: kamehameha-stack-set-execution-role
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
-      
-  Global:
-    Type: AWS::CloudFormation::StackSet
+
+  IAM:
+    Type: AWS::CloudFormation::Stack
     Properties:
-        StackSetName: Ka-Me-Ha-Me-Ha-Global-Resources
-        PermissionModel: SELF_MANAGED
-        TemplateURL: !Ref GlobalResourcesTemplateUrl
-        AdministrationRoleARN: !GetAtt StackSetAdminRole.Arn
-        ExecutionRoleName: !Ref StackSetExecutionRole
-        StackInstancesGroup:
-          - DeploymentTargets:
-              Accounts:
-                - !Ref AWS::AccountId
-            Regions:
-              - us-west-2
+      TemplateURL: !Ref GlobalResourcesTemplateUrl
 
   USWest2:
     Type: AWS::CloudFormation::StackSet
-    DependsOn: Global
+    DependsOn: IAM
+    
     Properties:
       StackSetName: Ka-Me-Ha-Me-Ha-us-west-2-Resources
+      Capabilities: 
+        - CAPABILITY_AUTO_EXPAND
       PermissionModel: SELF_MANAGED
       TemplateURL: !Ref USWest2ResourcesTemplateUrl
       AdministrationRoleARN: !GetAtt StackSetAdminRole.Arn
@@ -119,12 +110,14 @@ Resources:
       Parameters:
         - ParameterKey: CreateKMSKey
           ParameterValue: !Ref CreateMainKey
-  
+
   APSouth1:
     Type: AWS::CloudFormation::StackSet
     DependsOn: USWest2
     Properties:
       StackSetName: Ka-Me-Ha-Me-Ha-ap-south-1-Resources
+      Capabilities: 
+        - CAPABILITY_AUTO_EXPAND
       PermissionModel: SELF_MANAGED
       TemplateURL: !Ref APSouth1ResourcesTemplateUrl
       AdministrationRoleARN: !GetAtt StackSetAdminRole.Arn
@@ -144,6 +137,8 @@ Resources:
     DependsOn: APSouth1
     Properties:
       StackSetName: Ka-Me-Ha-Me-Ha-Custom-Resources
+      Capabilities: 
+        - CAPABILITY_AUTO_EXPAND
       PermissionModel: SELF_MANAGED
       TemplateURL: !Ref CustomResourcesTemplateUrl
       AdministrationRoleARN: !GetAtt StackSetAdminRole.Arn
@@ -154,4 +149,3 @@ Resources:
               - !Ref AWS::AccountId
           Regions:
             - us-west-2
-  
