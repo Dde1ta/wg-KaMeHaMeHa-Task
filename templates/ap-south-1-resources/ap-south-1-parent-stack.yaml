@@ -29,7 +29,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       TemplateURL: !Ref GetParametersTemplateUrl
-
+      
   ReplicaKey:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete

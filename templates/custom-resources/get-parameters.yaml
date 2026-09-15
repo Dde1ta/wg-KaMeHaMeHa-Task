@@ -1,11 +1,11 @@
 Parameters:
   LambdaCodeBucketName:
     Type: String
-    Default: cloudformation-ap-south-1-templates-295345165437-ap-south-1-an
+    Default: cloudformation-us-west-2-templates-295345165437-us-west-2-an
 
   LambdaCodeZipObjectKey:
     Type: String
-    Default: kamehameha/main/lambda-zips/custom-resource/parameter-reader.zip
+    Default: kamehameha/main/lambda-zips/custom-resource-parameter-reader.zip
 
 Resources:
   ReaderLambdaExecutionRole:
@@ -39,7 +39,7 @@ Resources:
 
   ParameterReaderCustomResource:
     Type: AWS::Lambda::Function
-    DeletionPolicy: Delete
+    DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
       Code:
@@ -51,7 +51,7 @@ Resources:
       PackageType: Zip
       Timeout: 300
 
-  ReadSomeThings:
+  ReadParametersForCustomResources:
     Type: AWS::CloudFormation::CustomResource
     DependsOn: ReaderExecutionPolicy
     DeletionPolicy: Retain
@@ -59,13 +59,13 @@ Resources:
     Properties:
       ServiceToken: !GetAtt ParameterReaderCustomResource.Arn
       ServiceTimeout: 100
-      Region: "us-east-1"
+      Region: "ap-south-1"
       Parameters:
         - ReplicationBucketName:
-            Name: "/internship/task/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
+            Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
             Decrypt: False
 
 Outputs:
   
   ReplicationBucketName:
-    Value: !GetAtt ReadSomeThings.ReplicationBucketName
+    Value: !GetAtt ReadParametersForCustomResources.ReplicationBucketName

@@ -2,7 +2,7 @@ Parameters:
   # Read This  
   DestinationBucketName:
     Type: String
-    Default: "/internship/task/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
+    Default: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
     Description: "Name of the Destination bucket"
   
   CustomResourceExecutionRoleArn:
@@ -12,7 +12,7 @@ Parameters:
 
   SourceBucketName:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/internship/task/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
+    Default: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
     Description: "Name of the Source bucket"
   
   ReplicationRoleArn:
@@ -28,7 +28,7 @@ Parameters:
   CustomResourceLambdaCodeZipObjectKey:
     Type: String
     Description: "The object key of the zip file"
-    Default: kamehameha/lambda-code-zips/custom-resource-s3-replication-rule.zip
+    Default: kamehameha/main/lambda-zips/custom-resource-s3-replication-rule.zip
 
   SSEKMSKey:
     Type: AWS::SSM::Parameter::Value<String>
@@ -46,6 +46,7 @@ Resources:
       Role: !Ref CustomResourceExecutionRoleArn
       Handler: handler.main
       Runtime: python3.14
+      Timeout: 200
       PackageType: Zip
     
   ReplicationRule:

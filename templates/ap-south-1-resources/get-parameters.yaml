@@ -39,7 +39,7 @@ Resources:
 
   ParameterReaderCustomResource:
     Type: AWS::Lambda::Function
-    DeletionPolicy: Delete
+    DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
       Code:
@@ -51,7 +51,7 @@ Resources:
       PackageType: Zip
       Timeout: 300
 
-  ReadSomeThings:
+  ReadParametersForAPSouth1:
     Type: AWS::CloudFormation::CustomResource
     DependsOn: ReaderExecutionPolicy
     DeletionPolicy: Retain
@@ -59,26 +59,26 @@ Resources:
     Properties:
       ServiceToken: !GetAtt ParameterReaderCustomResource.Arn
       ServiceTimeout: 100
-      Region: "us-east-1"
+      Region: "us-west-2"
       Parameters:
         - ReplicationBucketName:
-            Name: "/internship/task/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
+            Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
             Decrypt: False
         - ReplicationRole:
             Name: "/internship/tasks/ka-me-ha-me-ha/global/iam/bucket-replication-roles/ap-south-1-to-us-west-2"
             Decrypt: False
         - KMSMainKeyArn:
-            Name: "/internship/task/kamehameha/us-west-2/kms/sse-multi-region-key/arn"
+            Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/kms/sse-multi-region-key/arn"
             Decrypt: False
 
 Outputs:
   
   ReplicationBucketName:
-    Value: !GetAtt ReadSomeThings.ReplicationBucketName
+    Value: !GetAtt ReadParametersForAPSouth1.ReplicationBucketName
   
   ReplicationRole:
-    Value: !GetAtt ReadSomeThings.ReplicationRole
+    Value: !GetAtt ReadParametersForAPSouth1.ReplicationRole
   
   KMSMainKeyArn:
-    Value: !GetAtt ReadSomeThings.KMSMainKeyArn
+    Value: !GetAtt ReadParametersForAPSouth1.KMSMainKeyArn
    

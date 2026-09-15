@@ -6,12 +6,12 @@ Parameters:
   
   EnablerLambdaFunctionCodeBucket:
     Type: String
-    Default: my-indian-cloudformation-templates-295345165437-ap-south-1-an
+    Default: cloudformation-us-west-2-templates-295345165437-us-west-2-an
     Description: "The name of the bucket stores ka-me-ha-me-ha-enabler function code zip file"
   
   EnablerLambdaFunctionCodeZipObjectKey:
     Type: String
-    Default: KaMeHaMeHa/Main/lambda-code-zips/us-west-2-ka-me-ha-me-ha-enabler.zip
+    Default: kamehameha/main/lambda-zips/us-west-2-ka-me-ha-me-ha-enabler.zip
     Description: "The object key of the zip file of the code for ka-me-ha-me-ha-enabler function"
   
   EnablerLambdaFunctionEnvBucketName:

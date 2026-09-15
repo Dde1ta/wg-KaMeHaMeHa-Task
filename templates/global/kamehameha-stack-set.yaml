@@ -118,6 +118,7 @@ Resources:
       StackSetName: Ka-Me-Ha-Me-Ha-ap-south-1-Resources
       Capabilities: 
         - CAPABILITY_AUTO_EXPAND
+        - CAPABILITY_NAMED_IAM
       PermissionModel: SELF_MANAGED
       TemplateURL: !Ref APSouth1ResourcesTemplateUrl
       AdministrationRoleARN: !GetAtt StackSetAdminRole.Arn
@@ -139,6 +140,7 @@ Resources:
       StackSetName: Ka-Me-Ha-Me-Ha-Custom-Resources
       Capabilities: 
         - CAPABILITY_AUTO_EXPAND
+        - CAPABILITY_NAMED_IAM
       PermissionModel: SELF_MANAGED
       TemplateURL: !Ref CustomResourcesTemplateUrl
       AdministrationRoleARN: !GetAtt StackSetAdminRole.Arn

@@ -31,7 +31,7 @@ Resources:
   USWest2S3BucketNameSSMParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: "/internship/task/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
+      Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
       Value: !Ref USWest2S3Bucket
       Type: String
 

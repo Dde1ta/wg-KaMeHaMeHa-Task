@@ -18,7 +18,7 @@ Parameters:
   # Read this
   ReplicationBucketName:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/internship/task/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
+    Default: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
     Description: "The Bucket to replicate to"
 
 Resources:
@@ -60,6 +60,6 @@ Resources:
   APSouth12S3BucketNameSSMParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: "/internship/task/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
+      Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
       Value: !Ref APSouth1S3Bucket
       Type: String

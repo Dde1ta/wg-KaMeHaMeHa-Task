@@ -2,17 +2,17 @@ Parameters:
   S3BucketName:
     Description: "Name for bucket One"
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/internship/task/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
+    Default: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
 
   LambdaCodeBucket:
     Description: "Bucket with the code of the lambda function"
     Type: String
-    Default: my-indian-cloudformation-templates-295345165437-ap-south-1-an
+    Default: cloudformation-us-west-2-templates-295345165437-us-west-2-an
   
   LambdaCodeZipObjectKey:
     Description: "Object key of the zip file for the code"
     Type: String
-    Default: KaMeHaMeHa/Main/lambda-code-zips/custom-resource-s3-initialization.zip
+    Default: kamehameha/main/lambda-zips/custom-resource-s3-initialization.zip
 
 Resources:
   CustomResourceForS3InitializationLambdaFunction:
@@ -24,6 +24,7 @@ Resources:
       Role: "{{resolve:ssm:/internship/tasks/ka-me-ha-me-ha/global/iam/lambda-execution-roles/custom-resources/s3-initialization-execution-role-arn}}"
       Handler: handler.main
       Runtime: python3.14
+      Timeout: 200
       PackageType: Zip
 
   BucketInitialization:

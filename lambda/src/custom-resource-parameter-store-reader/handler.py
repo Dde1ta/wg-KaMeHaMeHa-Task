@@ -1,170 +1,111 @@
-from typing import List
-from cfnresponse import *
+import logging
 import boto3
+from typing import List, Dict, Any
+from cfnresponse import send, SUCCESS, FAILED
+
+# Configure logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def fetch_parameter(name: str, decrypt: bool, client) -> str | List[str] | None:
-    response = client.get_parameter(
-        Name=name,
-        WithDecryption=decrypt
-    )
+    """Fetches a single parameter from AWS SSM Parameter Store."""
+    try:
+        response = client.get_parameter(
+            Name=name,
+            WithDecryption=decrypt
+        )
+        return response['Parameter']['Value']
+    except Exception as e:
+        logger.error(f"Error fetching parameter {name}: {str(e)}")
+        raise e
 
-    value = response['Parameter']['Value']
-
-    return value
-
+def safe_boolean(value: Any) -> bool:
+    """Safely parses a boolean value from CloudFormation (handles both str and bool types)."""
+    if isinstance(value, str):
+        return value.lower() in ["true", "yes", "1"]
+    return bool(value)
 
 def main(event, context):
-    """
-        Properties:
-          Region: "<aws-region>"
-          Parameters:
-            - <OutPutName>:
-                Name: <Parameter Name>
-                Decrypt: <True / False>
-            - <OutPutName>:
-                Name: <Parameter Name>
-                Decrypt: <True / False>
-            - <OutPutName>:
-                Name: <Parameter Name>
-                Decrypt: <True / False>
-
-
-    :param event:
-    :param context:
-    :return:
-    """
-    print("getting valid Regions")
-
+    logger.info(f"Received event: {event}")
+    
+    # Establish a stable Physical Resource ID for CloudFormation
+    physical_id = event.get('PhysicalResourceId', f"SSMParameterFetcher-{context.log_stream_name}")
+    
     try:
-
+        request_type = event.get('RequestType')
         properties = event.get('ResourceProperties', {})
+        
+        # 1. Handle Delete immediately
+        if request_type == "Delete":
+            logger.info("Delete event received. Nothing to delete, returning SUCCESS.")
+            send(event, context, SUCCESS, {}, physicalResourceId=physical_id)
+            return {"statusCode": 200, "body": "Deleted successfully"}
 
-        event_type = event.get('RequestType')
+        # 2. Validate Properties
+        if not properties:
+            raise ValueError("Resource Properties are completely missing from the event.")
 
-        print("Recived These propertiers", properties)
+        parameter_region = properties.get("Region")
+        parameters = properties.get("Parameters")
 
-        if properties == {}:
-            send(event=event,
-                context=context,
-                responseStatus=FAILED,
-                responseData={},
-                reason="Resource Properties are missing"
-                )  # Send Failure :- Properties missing
+        if not parameter_region or not isinstance(parameter_region, str):
+            raise ValueError(f"Region is missing or invalid: {parameter_region}")
 
-            return {
-                "statusCode": 500,
-                "body": {
-                    "message": "Failed: Resource Properties are missing"
-                }
-            }
+        if not parameters or not isinstance(parameters, list):
+            raise ValueError("Parameters list is missing, empty, or invalid.")
 
-        parameter_region = properties.get("Region", None)
-        parameters = properties.get("Parameters", [{}])
-
-        if parameter_region is None:
-            send(
-                event,
-                context,
-                responseStatus=FAILED,
-                reason=f"Region cannot be empty"
-            ) # Failure :- Region is Missing
-            return {
-                "statusCode": 400,
-                "body": "Region is Missing"
-            }
-
-        if parameter_region == [{}]:
-            send(
-                event,
-                context,
-                responseStatus=FAILED,
-                reason=f"Invaild / Unavailable Region {parameter_region}"
-            )  # Invaild / Unavailable Region
-            return {
-                "statusCode": 400,
-                "body": "Region is Invaild / Unavailable"
-            }
-
-        if parameters is None:
-            send(
-                event,
-                context,
-                responseStatus=FAILED,
-                reason="Empty Parameter List"
-            )  # Failure
-            #Failure  # Failure :- Nothing to read
-
-            return {
-                "statusCode": 400,
-                "body": "Parameter Are Missing"
-            }
-
+        # 3. Process Parameters (Create / Update)
+        logger.info(f"Connecting to SSM in region: {parameter_region}")
+        client = boto3.client('ssm', region_name=parameter_region)
         response_data = {}
 
-        client = boto3.client('ssm', region_name=parameter_region)
-
-        try:
-            if event_type == "Create" or event_type == "Update":
-                print("Working")
-                for param in parameters:
-                    output_name = list(param.keys())[0]
-                    param_name = param[output_name].get("Name")
-                    param_decrypt = param[output_name].get("Decrypt", False).lower() == "true"
-
-                    param_value = fetch_parameter(param_name, param_decrypt, client)
-
-                    response_data[output_name] = param_value
-
-            if event_type == "Delete":
-                pass
+        for param_dict in parameters:
+            # param_dict looks like: {"MyOutputName": {"Name": "/my/param", "Decrypt": True}}
+            if not isinstance(param_dict, dict) or not param_dict:
+                continue
+                
+            output_name = list(param_dict.keys())[0]
+            param_config = param_dict[output_name]
             
-            print("Work DOne")
+            param_name = param_config.get("Name")
+            if not param_name:
+                raise ValueError(f"Missing 'Name' for parameter output: {output_name}")
+                
+            param_decrypt = safe_boolean(param_config.get("Decrypt", False))
 
-        except Exception as e:
-            send(
-                event,
-                context,
-                responseStatus=FAILED,
-                reason=str(e)
-            )  #Failure
+            logger.info(f"Fetching parameter: {param_name} (Decrypt: {param_decrypt})")
+            param_value = fetch_parameter(param_name, param_decrypt, client)
+            
+            response_data[output_name] = param_value
 
-            return {
-                "statusCode": 500,
-                "body": "Bucket"
-            }
-
-        print("Cloudformation Status Sending")
-
+        # 4. Send Success to CloudFormation
+        logger.info("Successfully fetched all parameters. Sending SUCCESS to CloudFormation.")
         send(
-            event,
-            context,
-            responseStatus=SUCCESS,
-            responseData=response_data
+            event, 
+            context, 
+            SUCCESS, 
+            responseData=response_data, 
+            physicalResourceId=physical_id
         )
-
-        print("Cloudformation Status Sent")
-
+        
         return {
             "statusCode": 200,
-            "body": "Bucket"
+            "body": "Parameters fetched successfully"
         }
 
     except Exception as e:
+        logger.error(f"Failed to process Custom Resource: {str(e)}", exc_info=True)
+        # Send Failure to CloudFormation to prevent the stack from hanging
         send(
-            event,
-            context,
-            responseStatus=FAILED,
+            event, 
+            context, 
+            FAILED, 
+            responseData={}, 
+            physicalResourceId=physical_id, 
             reason=str(e)
-        )  #Failure
-
+        )
+        
         return {
             "statusCode": 500,
-            "body": "Bucket"
+            "body": f"Failed: {str(e)}"
         }
-
-    return {
-        {
-            "statusCode": 200,
-            "body": "Bucket"
-        }
-    }

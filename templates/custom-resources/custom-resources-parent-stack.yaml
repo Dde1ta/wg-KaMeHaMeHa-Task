@@ -32,6 +32,7 @@ Resources:
 
   S3InitailizationStack:
     Type: AWS::CloudFormation::Stack
+    DependsOn: S3ReplicationRuleStack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
