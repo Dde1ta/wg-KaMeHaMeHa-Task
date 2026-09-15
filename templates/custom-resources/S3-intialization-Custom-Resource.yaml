@@ -1,8 +1,8 @@
 Parameters:
   S3BucketName:
     Description: "Name for bucket One"
-    Type: String
-    Default: test-bucket-one-for-kamehameha
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/internship/task/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
 
   LambdaCodeBucket:
     Description: "Bucket with the code of the lambda function"

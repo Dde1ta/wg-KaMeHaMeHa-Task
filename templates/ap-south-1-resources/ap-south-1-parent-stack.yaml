@@ -15,9 +15,21 @@ Parameters:
     Type: String
     Default: "https://cloudformation-ap-south-1-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/kamehameha/main/ap-south-1/S3.yaml"
     Description: "S3 Url of the template for the S3 bucket"
+  
+  GetParametersTemplateUrl:
+    Type: String
+    Default: "https://cloudformation-ap-south-1-templates-295345165437-ap-south-1-an.s3.ap-south-1.amazonaws.com/kamehameha/main/ap-south-1/get-parameters.yaml"
+    Description: "S3 Url of the template to read parameters"
 
 Resources:
   
+  GetParmeters:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: !Ref GetParametersTemplateUrl
+
   ReplicaKey:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
@@ -25,6 +37,7 @@ Resources:
     Properties:
       Parameters:
         CreateReplicaKey: !Ref CreateKMSReplicaKey
+        KMSMainKeyArn: !GetAtt GetParmeters.Outputs.KMSMainKeyArn
       TemplateURL: !Ref ReplicaKeyTemplateUrl
   
   S3Bucket:
@@ -33,3 +46,6 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       TemplateURL: !Ref S3BucketTemplateUrl 
+      Parameters:
+        ReplicationBucketName: !GetAtt GetParmeters.Outputs.ReplicationBucketName
+        ReplicationRole: !GetAtt GetParmeters.Outputs.ReplicationRole

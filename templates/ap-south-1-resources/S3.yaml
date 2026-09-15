@@ -9,11 +9,13 @@ Parameters:
     Description: "Name of the bucket"
     Default: ka-me-ha-me-ha
   
+  # Read this
   ReplicationRole:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/internship/tasks/ka-me-ha-me-ha/global/iam/bucket-replication-roles/ap-south-1-to-us-west-2"
     Description: "Role S3 will use to replicate to us-west-2 bucket"
   
+  # Read this
   ReplicationBucketName:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/internship/task/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"

@@ -1,6 +1,7 @@
 Parameters:
+  # Read This
   KMSMainKeyArn:
-    Type: AWS::SSM::Parameter::Value<String>
+    Type: String
     Default: /internship/task/kamehameha/us-west-2/kms/sse-multi-region-key/arn
   
   CreateReplicaKey:

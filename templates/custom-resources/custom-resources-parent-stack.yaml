@@ -8,14 +8,27 @@ Parameters:
     Type: String
     Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/main/custom-resources/S3-intialization.yaml"
     Description: "Template URL of the S3 Initialization Custom Resource"
+  
+  ParameterReader:
+    Type: String
+    Default: "https://cloudformation-us-west-2-templates-295345165437-us-west-2-an.s3.us-west-2.amazonaws.com/kamehameha/main/custom-resources/get-parameters.yaml"
+    Description: "Template URL of the Parameter Reader for custom resource"
 
 Resources:
+  
+  ParameterReaderForCustomResource:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Ref ParameterReader
+
   S3ReplicationRuleStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
       TemplateURL: !Ref S3ReplicationRuleStackTemplateURL
+      Parameters:
+        DestinationBucketName: !GetAtt ParameterReaderForCustomResource.Outputs.ReplicationBucketName
 
   S3InitailizationStack:
     Type: AWS::CloudFormation::Stack

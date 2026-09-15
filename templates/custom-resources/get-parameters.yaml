@@ -1,0 +1,71 @@
+Parameters:
+  LambdaCodeBucketName:
+    Type: String
+    Default: cloudformation-ap-south-1-templates-295345165437-ap-south-1-an
+
+  LambdaCodeZipObjectKey:
+    Type: String
+    Default: kamehameha/main/lambda-zips/custom-resource/parameter-reader.zip
+
+Resources:
+  ReaderLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action: "sts:AssumeRole"
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+
+      RoleName: ka-me-ha-me-ha-parameter-reader-for-custom-resources-role
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  ReaderExecutionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      Roles:
+        - !Ref ReaderLambdaExecutionRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action: "ssm:GetParameter"
+            Resource: "*"
+      PolicyName: "ka-me-ha-me-ha-parameter-reader-for-custom-resource-execution-role"
+
+  ParameterReaderCustomResource:
+    Type: AWS::Lambda::Function
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      Code:
+        S3Bucket: !Ref LambdaCodeBucketName
+        S3Key: !Ref LambdaCodeZipObjectKey
+      Role: !GetAtt ReaderLambdaExecutionRole.Arn
+      Handler: handler.main
+      Runtime: python3.14
+      PackageType: Zip
+      Timeout: 300
+
+  ReadSomeThings:
+    Type: AWS::CloudFormation::CustomResource
+    DependsOn: ReaderExecutionPolicy
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ServiceToken: !GetAtt ParameterReaderCustomResource.Arn
+      ServiceTimeout: 100
+      Region: "us-east-1"
+      Parameters:
+        - ReplicationBucketName:
+            Name: "/internship/task/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
+            Decrypt: False
+
+Outputs:
+  
+  ReplicationBucketName:
+    Value: !GetAtt ReadSomeThings.ReplicationBucketName

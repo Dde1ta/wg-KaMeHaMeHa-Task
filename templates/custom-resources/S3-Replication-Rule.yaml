@@ -1,7 +1,7 @@
 Parameters:
-    
+  # Read This  
   DestinationBucketName:
-    Type: AWS::SSM::Parameter::Value<String>
+    Type: String
     Default: "/internship/task/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
     Description: "Name of the Destination bucket"
   
