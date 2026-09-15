@@ -50,3 +50,4 @@ Resources:
       Parameters:
         ReplicationBucketArn: !GetAtt GetParmeters.Outputs.ReplicationBucketArn
         ReplicationRole: !GetAtt GetParmeters.Outputs.ReplicationRole
+        ReplicationBucketEncryptionKey: !GetAtt GetParmeters.Outputs.KMSMainKeyArn

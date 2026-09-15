@@ -20,6 +20,11 @@ Parameters:
     Type: String
     Default: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-arn"
     Description: "The Bucket to replicate to"
+  
+  ReplicationBucketEncryptionKey:
+    Type: String
+    Default: "Not Set"
+    Description: "The Key used to Encrypt the bucket"
 
 Resources:
   
@@ -50,9 +55,10 @@ Resources:
           - Destination:
               Bucket: !Ref ReplicationBucketArn
               EncryptionConfiguration:
-                ReplicaKmsKeyID: !Ref SSEKMSKey
+                ReplicaKmsKeyID: !Ref ReplicationBucketEncryptionKey
             Status: Enabled
-            Prefix: "*"
+            Filter:
+              Prefix: ""
             Priority: 1
             DeleteMarkerReplication: 
               Status: Enabled

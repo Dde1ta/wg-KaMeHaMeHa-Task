@@ -161,6 +161,19 @@ Resources:
                   - s3:ReplicateDelete
                 Resource:
                   - !Sub "arn:${AWS::Partition}:s3:::${APSouth1BucketName}-${AWS::AccountId}-ap-south-1-an/*"
+                
+              - Effect: "Allow"
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:GenerateDataKey"
+                Resource:
+                  - "arn:aws:kms:ap-south-1:295345165437:key/mrk-7c909992068e46948475911fedb1484e"
+              
+              - Effect: "Allow"
+                Action:
+                  - "kms:Decrypt"
+                Resource:
+                  - "arn:aws:kms:us-west-2:295345165437:key/mrk-7c909992068e46948475911fedb1484e"
 
   APSouth1ToUSWest2ReplicationRole:
     Type: AWS::IAM::Role
@@ -201,6 +214,19 @@ Resources:
                   - s3:ReplicateDelete
                 Resource:
                   - !Sub "arn:${AWS::Partition}:s3:::${USWest2BucketName}-${AWS::AccountId}-us-west-2-an/*"
+              
+              - Effect: "Allow"
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:GenerateDataKey"
+                Resource:
+                  - "arn:aws:kms:us-west-2:295345165437:key/mrk-7c909992068e46948475911fedb1484e"
+              
+              - Effect: "Allow"
+                Action:
+                  - "kms:Decrypt"
+                Resource:
+                  - "arn:aws:kms:ap-south-1:295345165437:key/mrk-7c909992068e46948475911fedb1484e"
 
   USWest2EnablerLambdaExecutionRoleArnSSMParameter:
     Type: AWS::SSM::Parameter

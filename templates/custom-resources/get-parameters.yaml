@@ -61,11 +61,17 @@ Resources:
       ServiceTimeout: 100
       Region: "ap-south-1"
       Parameters:
-        - ReplicationBucketName:
+        - ReplicationBucketArn:
             Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-arn"
+            Decrypt: False
+        - DestinationBucketEncryptionKeyArn:
+            Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/kms/sse-multi-region-key/arn"
             Decrypt: False
 
 Outputs:
   
   ReplicationBucketArn:
     Value: !GetAtt ReadParametersForCustomResources.ReplicationBucketArn
+
+  DestinationBucketEncryptionKeyArn:
+    Value: !GetAtt ReadParametersForCustomResources.DestinationBucketEncryptionKeyArn

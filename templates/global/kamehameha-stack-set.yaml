@@ -94,7 +94,7 @@ Resources:
     DependsOn: IAM
     
     Properties:
-      StackSetName: Ka-Me-Ha-Me-Ha-us-west-2-Resources
+      StackSetName: ka-me-ha-me-ha-us-west-2
       Capabilities: 
         - CAPABILITY_AUTO_EXPAND
       PermissionModel: SELF_MANAGED
@@ -115,7 +115,7 @@ Resources:
     Type: AWS::CloudFormation::StackSet
     DependsOn: USWest2
     Properties:
-      StackSetName: Ka-Me-Ha-Me-Ha-ap-south-1-Resources
+      StackSetName: ka-me-ha-me-ha-ap-south-1
       Capabilities: 
         - CAPABILITY_AUTO_EXPAND
         - CAPABILITY_NAMED_IAM
@@ -137,7 +137,7 @@ Resources:
     Type: AWS::CloudFormation::StackSet
     DependsOn: APSouth1
     Properties:
-      StackSetName: Ka-Me-Ha-Me-Ha-Custom-Resources
+      StackSetName: ka-me-ha-me-ha-custom-resources
       Capabilities: 
         - CAPABILITY_AUTO_EXPAND
         - CAPABILITY_NAMED_IAM

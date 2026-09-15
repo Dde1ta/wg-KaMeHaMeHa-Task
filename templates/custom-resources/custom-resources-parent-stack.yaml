@@ -28,7 +28,8 @@ Resources:
     Properties:
       TemplateURL: !Ref S3ReplicationRuleStackTemplateURL
       Parameters:
-        DestinationBucketName: !GetAtt ParameterReaderForCustomResource.Outputs.ReplicationBucketName
+        DestinationBucketArn: !GetAtt ParameterReaderForCustomResource.Outputs.ReplicationBucketArn
+        DestinationBucketEncryptionKeyArn: !GetAtt ParameterReaderForCustomResource.Outputs.DestinationBucketEncryptionKeyArn
 
   S3InitailizationStack:
     Type: AWS::CloudFormation::Stack

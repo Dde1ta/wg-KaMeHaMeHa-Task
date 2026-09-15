@@ -5,6 +5,11 @@ Parameters:
     Default: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-arn"
     Description: "Name of the Destination bucket"
   
+  DestinationBucketEncryptionKeyArn:
+    Type: String
+    Default: "Freedom"
+    Description: "Key used for encryption at destination"
+  
   CustomResourceExecutionRoleArn:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/internship/tasks/ka-me-ha-me-ha/global/iam/lambda-execution-roles/custom-resources/s3-replication-rule-execution-role-arn"
@@ -29,11 +34,6 @@ Parameters:
     Type: String
     Description: "The object key of the zip file"
     Default: kamehameha/main/lambda-zips/custom-resource-s3-replication-rule.zip
-
-  SSEKMSKey:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: "/internship/tasks/ka-me-ha-me-ha/us-west-2/kms/sse-multi-region-key/arn"
-    Description: "Key used for encryption"
 
 Resources:
   
@@ -61,9 +61,10 @@ Resources:
           - Destination:
               Bucket: !Ref DestinationBucketArn
               EncryptionConfiguration:
-                ReplicaKmsKeyID: !Ref SSEKMSKey
+                ReplicaKmsKeyID: !Ref DestinationBucketEncryptionKeyArn
             Status: Enabled
-            Prefix: "*"
+            Filter:
+              Prefix: ""
             Priority: 1
             DeleteMarkerReplication: 
               Status: Enabled
