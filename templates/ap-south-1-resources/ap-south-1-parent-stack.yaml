@@ -42,10 +42,11 @@ Resources:
   
   S3Bucket:
     Type: AWS::CloudFormation::Stack
+    DependsOn: ReplicaKey
     DeletionPolicy: Delete
     UpdateReplacePolicy: Retain
     Properties:
       TemplateURL: !Ref S3BucketTemplateUrl 
       Parameters:
-        ReplicationBucketName: !GetAtt GetParmeters.Outputs.ReplicationBucketName
+        ReplicationBucketArn: !GetAtt GetParmeters.Outputs.ReplicationBucketArn
         ReplicationRole: !GetAtt GetParmeters.Outputs.ReplicationRole

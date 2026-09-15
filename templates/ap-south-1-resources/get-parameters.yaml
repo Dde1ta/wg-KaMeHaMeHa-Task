@@ -61,8 +61,8 @@ Resources:
       ServiceTimeout: 100
       Region: "us-west-2"
       Parameters:
-        - ReplicationBucketName:
-            Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
+        - ReplicationBucketArn:
+            Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-arn"
             Decrypt: False
         - ReplicationRole:
             Name: "/internship/tasks/ka-me-ha-me-ha/global/iam/bucket-replication-roles/ap-south-1-to-us-west-2"
@@ -73,8 +73,8 @@ Resources:
 
 Outputs:
   
-  ReplicationBucketName:
-    Value: !GetAtt ReadParametersForAPSouth1.ReplicationBucketName
+  ReplicationBucketArn:
+    Value: !GetAtt ReadParametersForAPSouth1.ReplicationBucketArn
   
   ReplicationRole:
     Value: !GetAtt ReadParametersForAPSouth1.ReplicationRole

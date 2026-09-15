@@ -62,10 +62,10 @@ Resources:
       Region: "ap-south-1"
       Parameters:
         - ReplicationBucketName:
-            Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
+            Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-arn"
             Decrypt: False
 
 Outputs:
   
-  ReplicationBucketName:
-    Value: !GetAtt ReadParametersForCustomResources.ReplicationBucketName
+  ReplicationBucketArn:
+    Value: !GetAtt ReadParametersForCustomResources.ReplicationBucketArn

@@ -1,8 +1,8 @@
 Parameters:
   # Read This  
-  DestinationBucketName:
+  DestinationBucketArn:
     Type: String
-    Default: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
+    Default: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-arn"
     Description: "Name of the Destination bucket"
   
   CustomResourceExecutionRoleArn:
@@ -59,7 +59,7 @@ Resources:
         Role: !Ref ReplicationRoleArn
         Rules:
           - Destination:
-              Bucket: !Ref DestinationBucketName
+              Bucket: !Ref DestinationBucketArn
               EncryptionConfiguration:
                 ReplicaKmsKeyID: !Ref SSEKMSKey
             Status: Enabled

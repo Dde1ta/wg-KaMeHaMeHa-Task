@@ -11,14 +11,14 @@ Parameters:
   
   # Read this
   ReplicationRole:
-    Type: AWS::SSM::Parameter::Value<String>
+    Type: String
     Default: "/internship/tasks/ka-me-ha-me-ha/global/iam/bucket-replication-roles/ap-south-1-to-us-west-2"
     Description: "Role S3 will use to replicate to us-west-2 bucket"
   
   # Read this
-  ReplicationBucketName:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
+  ReplicationBucketArn:
+    Type: String
+    Default: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-arn"
     Description: "The Bucket to replicate to"
 
 Resources:
@@ -33,6 +33,9 @@ Resources:
           Region: !Ref AWS::Region
           
       BucketNamespace: account-regional
+      
+      VersioningConfiguration:
+        Status: Enabled
 
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -45,7 +48,7 @@ Resources:
         Role: !Ref ReplicationRole
         Rules:
           - Destination:
-              Bucket: !Ref ReplicationBucketName
+              Bucket: !Ref ReplicationBucketArn
               EncryptionConfiguration:
                 ReplicaKmsKeyID: !Ref SSEKMSKey
             Status: Enabled
@@ -57,9 +60,16 @@ Resources:
               SseKmsEncryptedObjects:
                 Status: Enabled
   
-  APSouth12S3BucketNameSSMParameter:
+  APSouth1S3BucketNameSSMParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
       Value: !Ref APSouth1S3Bucket
+      Type: String
+  
+  APSouth1S3BucketArnSSMParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-arn"
+      Value: !GetAtt APSouth1S3Bucket.Arn
       Type: String

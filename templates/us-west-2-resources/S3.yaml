@@ -34,6 +34,13 @@ Resources:
       Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
       Value: !Ref USWest2S3Bucket
       Type: String
+  
+  USWest2S3BucketArnSSMParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-arn"
+      Value: !GetAtt USWest2S3Bucket.Arn
+      Type: String
 
 Outputs:
   
