@@ -1,0 +1,43 @@
+Parameters:
+  DynamodbTableName:
+    Default: ka-me-ha-me-ha-archives
+    Type: String
+
+
+Resources:
+  DynamodbTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties: 
+      BillingMode: PAY_PER_REQUEST
+
+      TableClass: STANDARD
+ 
+      TableName: !Ref DynamodbTableName
+  
+      SSESpecification: 
+        SSEEnabled: false
+ 
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE 
+
+      AttributeDefinitions:
+        - AttributeName: "AttackID"
+          AttributeType: "S"
+
+      KeySchema:
+        - AttributeName: "AttackID"
+          KeyType: HASH
+
+
+Outputs:
+  DynamoDBTableArn:
+    Description: "The arn of the dynamodb table ka-me-ha-me-ha-archives"
+    Value: !GetAtt DynamodbTable.Arn
+  
+  
+  DynamoDBTableStreamArn:
+    Description: "The arn of the ka-me-ha-me-ha-archives table DynamodbStream"
+    Value: !GetAtt DynamodbTable.StreamArn
+  

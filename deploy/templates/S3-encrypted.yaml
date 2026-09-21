@@ -1,0 +1,39 @@
+Parameters:
+  BucketName:
+    Type: String
+    Description: "Name of the bucket"
+    Default: ka-me-ha-me-ha
+
+  SSEKMSKeyID:
+    Type: String
+    Description: "kms key used for bucket encryption"
+
+
+Resources:
+  EncryptedS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: true
+            ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref SSEKMSKeyID
+      BucketName: !Sub
+        - "${Name}-${AccountID}-${Region}-an"
+        - Name: !Ref BucketName
+          AccountID: !Ref AWS::AccountId
+          Region: !Ref AWS::Region
+      BucketNamespace: account-regional
+      VersioningConfiguration:
+        Status: Enabled
+
+
+Outputs:
+  EncryptedS3BucketName:
+    Value: !Ref EncryptedS3Bucket
+    Description: "Name of the bucket made in us-west-2"
+
+  EncryptedS3BucketArn:
+    Value: !GetAtt EncryptedS3Bucket.Arn
+    Description: "Arn of the bucket made in us-west-2"

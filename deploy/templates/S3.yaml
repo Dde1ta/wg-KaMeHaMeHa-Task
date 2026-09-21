@@ -1,0 +1,25 @@
+Parameters:
+  BucketName:
+    Type: String
+    Description: "Name of the bucket"
+    Default: ka-me-ha-me-ha
+
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub
+        - "${Name}-${AccountID}-${Region}-an"
+        - Name: !Ref BucketName
+          AccountID: !Ref AWS::AccountId
+          Region: !Ref AWS::Region
+      BucketNamespace: account-regional
+      VersioningConfiguration:
+        Status: Enabled
+
+
+Outputs:
+  S3BucketName:
+    Value: !Ref S3Bucket
+    Description: "Name of the bucket"

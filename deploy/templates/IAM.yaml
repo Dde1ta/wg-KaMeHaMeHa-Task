@@ -1,0 +1,193 @@
+Parameters:
+  USWest2BucketName:
+    Type: String
+    Default: ka-me-ha-me-ha
+    Description: "Name of the bucket to be made in us-west-2"
+
+  APSouth1BucketName:
+    Type: String
+    Default: ka-me-ha-me-ha
+    Description: "Name of the bucket to be made in ap-south-1"
+
+  USWest2KMSKeyArn:
+    Type: String
+    Description: "Key Deployed in us-west-2"
+
+  APSouth1KMSKeyArn:
+    Type: String
+    Description: "Key Deployed in ap-south-1"
+
+
+Resources:
+  USWest2EnablerLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+
+  USWest2EnablerLambdaExecutionRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+            Resource: "*"
+          - Effect: "Allow"
+            Resource: "*"
+            Action:
+              - "dynamodb:ListStreams"
+              - "dynamodb:DescribeStream"
+              - "dynamodb:GetShardIterator"
+              - "dynamodb:GetRecords"
+          - Effect: "Allow"
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+
+      PolicyName: KaMeHaMeHa-us-west-2-Enabler-Lambda-Execution-Role-Policy
+      Roles:
+        - !Ref USWest2EnablerLambdaExecutionRole
+
+  USWest2ToAPSouth1ReplicationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - s3.amazonaws.com
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: Allow-Read-To-Bucket-One-For-Two-Inline
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - s3:GetReplicationConfiguration
+                  - s3:ListBucket
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:s3:::${USWest2BucketName}-${AWS::AccountId}-us-west-2-an"
+
+              - Effect: "Allow"
+                Action:
+                  - s3:GetObjectVersionForReplication
+                  - s3:GetObjectVersionAcl
+                  - s3:GetObjectVersionTagging
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:s3:::${USWest2BucketName}-${AWS::AccountId}-us-west-2-an/*"
+
+              - Effect: "Allow"
+                Action:
+                  - s3:ReplicateObject
+                  - s3:ReplicateTags
+                  - s3:ReplicateDelete
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:s3:::${APSouth1BucketName}-${AWS::AccountId}-ap-south-1-an/*"
+                
+              - Effect: "Allow"
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:GenerateDataKey"
+                Resource:
+                  - !Ref APSouth1KMSKeyArn
+              
+              - Effect: "Allow"
+                Action:
+                  - "kms:Decrypt"
+                Resource:
+                  - !Ref USWest2KMSKeyArn
+
+  APSouth1ToUSWest2ReplicationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - s3.amazonaws.com
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: Allow-Read-To-Bucket-Two-For-One-Inline
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - s3:GetReplicationConfiguration
+                  - s3:ListBucket
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:s3:::${APSouth1BucketName}-${AWS::AccountId}-ap-south-1-an"
+
+              - Effect: "Allow"
+                Action:
+                  - s3:GetObjectVersionForReplication
+                  - s3:GetObjectVersionAcl
+                  - s3:GetObjectVersionTagging
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:s3:::${APSouth1BucketName}-${AWS::AccountId}-ap-south-1-an/*"
+
+              - Effect: "Allow"
+                Action:
+                  - s3:ReplicateObject
+                  - s3:ReplicateTags
+                  - s3:ReplicateDelete
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:s3:::${USWest2BucketName}-${AWS::AccountId}-us-west-2-an/*"
+              
+              - Effect: "Allow"
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:GenerateDataKey"
+                Resource:
+                  - !Ref USWest2KMSKeyArn
+              
+              - Effect: "Allow"
+                Action:
+                  - "kms:Decrypt"
+                Resource:
+                  - !Ref APSouth1KMSKeyArn
+
+
+Outputs:
+  EnablerLambdaFunctionExecutionRoleName:
+    Description: "Execution Role Name of Ka-Me-Ha-Me-Ha-Enabler Lambda function"
+    Value: !Ref USWest2EnablerLambdaExecutionRole
+
+  EnablerLambdaFunctionExecutionRoleArn:
+    Description: "Execution Role arn of Ka-Me-Ha-Me-Ha-Enabler Lambda function"
+    Value: !GetAtt USWest2EnablerLambdaExecutionRole.Arn
+
+  USWest2ToAPSouth1ReplicationRoleName:
+    Description: "Name of Replication Role for the s3 buckets us-west-2 -> ap-south-1"
+    Value: !Ref USWest2ToAPSouth1ReplicationRole
+
+  USWest2ToAPSouth1ReplicationRoleArn:
+    Description: "Arn of Replication Role for the s3 buckets us-west-2 -> ap-south-1"
+    Value: !GetAtt USWest2ToAPSouth1ReplicationRole.Arn
+
+  APSouth1ToUSWest2ReplicationRoleName:
+    Description: "Name of Replication Role for the s3 buckets ap-south-1 -> us-west-2"
+    Value: !Ref APSouth1ToUSWest2ReplicationRole
+
+  APSouth1ToUSWest2ReplicationRoleArn:
+    Description: "Arn of Replication Role for the s3 buckets ap-south-1 -> us-west-2"
+    Value: !GetAtt APSouth1ToUSWest2ReplicationRole.Arn
+
