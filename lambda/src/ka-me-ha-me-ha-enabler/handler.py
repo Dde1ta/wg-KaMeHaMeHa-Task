@@ -72,9 +72,13 @@ def main(event: dict, context):
             try:
                 new_item = Item()
 
-                new_item.attack_id = record["AttackID"].get("S")
+                sort_key = record["SK"].get("S")
+                defender = "#".join(sort_key.split("#")[:2])
+                attack_id = sort_key.split("#")[-1]
+
+                new_item.attack_id = attack_id
                 new_item.attacker = record["Attacker"].get("S")
-                new_item.defender = record["Defender"].get("S")
+                new_item.defender = defender
                 new_item.result = record["Success"].get("BOOL").lower() == 'true'
                 new_item.timestamp = int(record["TimeStamp"].get("N"))
                 new_item.location = record["Location"].get("S")
