@@ -2,14 +2,8 @@ import boto3
 from botocore.exceptions import ClientError
 import json
 import os
+from item import Item
 
-class S3ObjectKeyNotSetError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-class S3BucketNameNotSetError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
 
 class S3FileContentMissing(Exception):
 
@@ -17,17 +11,30 @@ class S3FileContentMissing(Exception):
         super().__init__(message)
 
 
-def dump_json_file(data: dict) -> bool:
+def dump_json_file(data: dict) -> dict[str, int | str]:
     global bucket_name
     global object_key
     global s3_client
 
-    s3_client.put_object(
-        Bucket=bucket_name,
-        Key=object_key,
-        Body=json.dumps(data),
-        ContentType="application/json"
-    )
+    try:
+        s3_client.put_object(
+            Bucket=bucket_name,
+            Key=object_key,
+            Body=json.dumps(data),
+            ContentType="application/json"
+        )
+
+        return {
+            "statusCode": 200,
+            "body": "Success :D"
+        }
+
+    except Exception as e:
+        print(e)
+        return {
+            "statusCode": 500,
+            "body": "Success :D"
+        }
 
 
 s3_client = boto3.client("s3")
@@ -36,19 +43,13 @@ bucket_name = os.getenv("BUCKET_NAME", None)
 
 object_key = os.getenv("OBJECT_KEY", None)
 
-if object_key is None:
-    raise S3ObjectKeyNotSetError("Object Key for the file not set")
 
-if bucket_name is None:
-    raise S3BucketNameNotSetError("Bucket Name is not set in env")
-
-
-def main(event, context):
+def main(event: dict, context):
 
     try:
         response = s3_client.get_object(
-            Bucket = bucket_name,
-            Key = object_key
+            Bucket=bucket_name,
+            Key=object_key
         )
 
         raw_content = response['Body'].read().decode('utf-8')
@@ -66,15 +67,32 @@ def main(event, context):
         raise S3FileContentMissing("File is empty / misconfigured")
 
     else:
-        dump_json_file(
-            data={
+        current_object = {"Items": []}
+        for record in event["current"].get("Records"):
+            try:
+                new_item = Item()
+
+                new_item.attack_id = record["AttackID"].get("S")
+                new_item.attacker = record["Attacker"].get("S")
+                new_item.defender = record["Defender"].get("S")
+                new_item.result = record["Success"].get("BOOL").lower() == 'true'
+                new_item.timestamp = int(record["TimeStamp"].get("N"))
+                new_item.location = record["Location"].get("S")
+
+                current_object["Items"].append(new_item)
+
+            except ValueError as e:
+                print(e)
+                print(record)
+
+                current_object["Items"].append({
+                    "Error": str(e),
+                    "Status": "The item processing failed"
+                })
+
+        return dump_json_file(
+            {
                 "previous": file_content.get("current"),
-                "current": event
+                "current": current_object
             }
         )
-
-    return {
-        "statusCode": 200,
-        "body": "Success :D"
-    }
-
