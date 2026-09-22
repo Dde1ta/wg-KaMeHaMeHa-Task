@@ -1,11 +1,11 @@
 Parameters:
-  PrimaryBucketName:
+  PrimaryBucketArn:
     Type: String
-    Description: "Name of the bucket to be made in Primary Region"
+    Description: "Arn of the bucket to be made in Primary Region"
 
-  SecondaryBucketName:
+  SecondaryBucketArn:
     Type: String
-    Description: "Name of the bucket to be made in Secondary Region"
+    Description: "Arn of the bucket to be made in Secondary Region"
 
   PrimaryKMSKeyArn:
     Type: String
@@ -52,7 +52,7 @@ Resources:
                   - s3:GetReplicationConfiguration
                   - s3:ListBucket
                 Resource:
-                  - !Ref PrimaryBucketName
+                  - !Ref PrimaryBucketArn
 
               - Effect: "Allow"
                 Action:
@@ -60,7 +60,7 @@ Resources:
                   - s3:GetObjectVersionAcl
                   - s3:GetObjectVersionTagging
                 Resource:
-                  - !Ref PrimaryBucketName
+                  - !Ref PrimaryBucketArn
 
               - Effect: "Allow"
                 Action:
@@ -68,7 +68,7 @@ Resources:
                   - s3:ReplicateTags
                   - s3:ReplicateDelete
                 Resource:
-                  - !Ref SecondaryBucketName
+                  - !Ref SecondaryBucketArn
                 
               - Effect: "Allow"
                 Action:
@@ -104,7 +104,7 @@ Resources:
                   - s3:GetReplicationConfiguration
                   - s3:ListBucket
                 Resource:
-                  - !Ref SecondaryBucketName
+                  - !Ref SecondaryBucketArn
 
               - Effect: "Allow"
                 Action:
@@ -112,7 +112,7 @@ Resources:
                   - s3:GetObjectVersionAcl
                   - s3:GetObjectVersionTagging
                 Resource:
-                  - !Ref SecondaryBucketName
+                  - !Ref SecondaryBucketArn
 
               - Effect: "Allow"
                 Action:
@@ -120,7 +120,7 @@ Resources:
                   - s3:ReplicateTags
                   - s3:ReplicateDelete
                 Resource:
-                  - !Ref PrimaryBucketName
+                  - !Ref PrimaryBucketArn
               
               - Effect: "Allow"
                 Action:

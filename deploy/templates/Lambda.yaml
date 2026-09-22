@@ -47,7 +47,7 @@ Resources:
             Action:
               - s3:PutObject
               - s3:GetObject
-            Resource: !Sub "arn:${AWS::Partition}:s3:::${BucketNameEnv}-${AWS::AccountId}-us-west-2-an/*"
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${BucketNameEnv}/*"
           - Effect: "Allow"
             Action:
               - "dynamodb:ListStreams"

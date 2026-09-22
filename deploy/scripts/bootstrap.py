@@ -9,10 +9,6 @@ Set of functions in the bootstrap process
 """
 
 
-def upload_templates(templates: Templates, paths: dict):
-    print("Uploading Templates one - by - one")
-
-    templates.upload_templates(*list(paths.values()))
 
 
 def boot_strap_main(bootstrap_stack: Stack, paths: dict):
