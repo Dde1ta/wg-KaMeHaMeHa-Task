@@ -1,23 +1,23 @@
 Parameters:
-  USWest2BucketName:
+  PrimaryBucketName:
     Type: String
-    Description: "Name of the bucket to be made in us-west-2"
+    Description: "Name of the bucket to be made in Primary Region"
 
-  APSouth1BucketName:
+  SecondaryBucketName:
     Type: String
-    Description: "Name of the bucket to be made in ap-south-1"
+    Description: "Name of the bucket to be made in Secondary Region"
 
-  USWest2KMSKeyArn:
+  PrimaryKMSKeyArn:
     Type: String
-    Description: "Key Deployed in us-west-2"
+    Description: "Key Deployed in Primary Region"
 
-  APSouth1KMSKeyArn:
+  SecondaryKMSKeyArn:
     Type: String
-    Description: "Key Deployed in ap-south-1"
+    Description: "Key Deployed in Secondary Region"
 
 
 Resources:
-  USWest2EnablerLambdaExecutionRole:
+  PrimaryEnablerLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -31,7 +31,7 @@ Resources:
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 
-  USWest2ToAPSouth1ReplicationRole:
+  PrimaryToSecondaryReplicationRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -52,7 +52,7 @@ Resources:
                   - s3:GetReplicationConfiguration
                   - s3:ListBucket
                 Resource:
-                  - !Sub "arn:${AWS::Partition}:s3:::${USWest2BucketName}-${AWS::AccountId}-us-west-2-an"
+                  - !Ref PrimaryBucketName
 
               - Effect: "Allow"
                 Action:
@@ -60,7 +60,7 @@ Resources:
                   - s3:GetObjectVersionAcl
                   - s3:GetObjectVersionTagging
                 Resource:
-                  - !Sub "arn:${AWS::Partition}:s3:::${USWest2BucketName}-${AWS::AccountId}-us-west-2-an/*"
+                  - !Ref PrimaryBucketName
 
               - Effect: "Allow"
                 Action:
@@ -68,22 +68,22 @@ Resources:
                   - s3:ReplicateTags
                   - s3:ReplicateDelete
                 Resource:
-                  - !Sub "arn:${AWS::Partition}:s3:::${APSouth1BucketName}-${AWS::AccountId}-ap-south-1-an/*"
+                  - !Ref SecondaryBucketName
                 
               - Effect: "Allow"
                 Action:
                   - "kms:Encrypt"
                   - "kms:GenerateDataKey"
                 Resource:
-                  - !Ref APSouth1KMSKeyArn
+                  - !Ref SecondaryKMSKeyArn
               
               - Effect: "Allow"
                 Action:
                   - "kms:Decrypt"
                 Resource:
-                  - !Ref USWest2KMSKeyArn
+                  - !Ref PrimaryKMSKeyArn
 
-  APSouth1ToUSWest2ReplicationRole:
+  SecondaryToPrimaryReplicationRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -104,7 +104,7 @@ Resources:
                   - s3:GetReplicationConfiguration
                   - s3:ListBucket
                 Resource:
-                  - !Sub "arn:${AWS::Partition}:s3:::${APSouth1BucketName}-${AWS::AccountId}-ap-south-1-an"
+                  - !Ref SecondaryBucketName
 
               - Effect: "Allow"
                 Action:
@@ -112,7 +112,7 @@ Resources:
                   - s3:GetObjectVersionAcl
                   - s3:GetObjectVersionTagging
                 Resource:
-                  - !Sub "arn:${AWS::Partition}:s3:::${APSouth1BucketName}-${AWS::AccountId}-ap-south-1-an/*"
+                  - !Ref SecondaryBucketName
 
               - Effect: "Allow"
                 Action:
@@ -120,44 +120,44 @@ Resources:
                   - s3:ReplicateTags
                   - s3:ReplicateDelete
                 Resource:
-                  - !Sub "arn:${AWS::Partition}:s3:::${USWest2BucketName}-${AWS::AccountId}-us-west-2-an/*"
+                  - !Ref PrimaryBucketName
               
               - Effect: "Allow"
                 Action:
                   - "kms:Encrypt"
                   - "kms:GenerateDataKey"
                 Resource:
-                  - !Ref USWest2KMSKeyArn
+                  - !Ref PrimaryKMSKeyArn
               
               - Effect: "Allow"
                 Action:
                   - "kms:Decrypt"
                 Resource:
-                  - !Ref APSouth1KMSKeyArn
+                  - !Ref SecondaryKMSKeyArn
 
 
 Outputs:
   EnablerLambdaFunctionExecutionRoleName:
     Description: "Execution Role Name of Ka-Me-Ha-Me-Ha-Enabler Lambda function"
-    Value: !Ref USWest2EnablerLambdaExecutionRole
+    Value: !Ref PrimaryEnablerLambdaExecutionRole
 
   EnablerLambdaFunctionExecutionRoleArn:
     Description: "Execution Role arn of Ka-Me-Ha-Me-Ha-Enabler Lambda function"
-    Value: !GetAtt USWest2EnablerLambdaExecutionRole.Arn
+    Value: !GetAtt PrimaryEnablerLambdaExecutionRole.Arn
 
-  USWest2ToAPSouth1ReplicationRoleName:
-    Description: "Name of Replication Role for the s3 buckets us-west-2 -> ap-south-1"
-    Value: !Ref USWest2ToAPSouth1ReplicationRole
+  PrimaryToSecondaryReplicationRoleName:
+    Description: "Name of Replication Role for the s3 buckets Primary Region -> Secondary Region"
+    Value: !Ref PrimaryToSecondaryReplicationRole
 
-  USWest2ToAPSouth1ReplicationRoleArn:
-    Description: "Arn of Replication Role for the s3 buckets us-west-2 -> ap-south-1"
-    Value: !GetAtt USWest2ToAPSouth1ReplicationRole.Arn
+  PrimaryToSecondaryReplicationRoleArn:
+    Description: "Arn of Replication Role for the s3 buckets Primary Region -> Secondary Region"
+    Value: !GetAtt PrimaryToSecondaryReplicationRole.Arn
 
-  APSouth1ToUSWest2ReplicationRoleName:
-    Description: "Name of Replication Role for the s3 buckets ap-south-1 -> us-west-2"
-    Value: !Ref APSouth1ToUSWest2ReplicationRole
+  SecondaryToPrimaryReplicationRoleName:
+    Description: "Name of Replication Role for the s3 buckets Secondary Region -> Primary Region"
+    Value: !Ref SecondaryToPrimaryReplicationRole
 
-  APSouth1ToUSWest2ReplicationRoleArn:
-    Description: "Arn of Replication Role for the s3 buckets ap-south-1 -> us-west-2"
-    Value: !GetAtt APSouth1ToUSWest2ReplicationRole.Arn
+  SecondaryToPrimaryReplicationRoleArn:
+    Description: "Arn of Replication Role for the s3 buckets Secondary Region -> Primary Region"
+    Value: !GetAtt SecondaryToPrimaryReplicationRole.Arn
 

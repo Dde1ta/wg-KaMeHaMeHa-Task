@@ -255,8 +255,7 @@ print("us-west-2")
 deploy(
     stack=key_stack_us_west_2,
     template_url=templates_us_west_2.get_template_url(US_WEST_2_TEMPLATE_PATHS[KMS_MAIN_STACK_NAME]),
-    CreateReplicaKey="False",
-    CreateKeys="True"
+    CreateReplicaKey="False"
 )
 
 print("ap-south-1")
@@ -265,8 +264,12 @@ deploy(
     stack=key_stack_ap_south_1,
     template_url=templates_ap_south_1.get_template_url(AP_SOUTH_1_TEMPLATE_PATHS[KMS_REPLICA_STACK_NAME]),
     CreateReplicaKey="True",
-    CreateKeys="True",
     KMSMainKeyArn=key_stack_us_west_2.get_output().get("KMSMainKeyArn")
+)
+
+deploy(
+    stack=dynamodb_stack_us_west_2,
+    template_url=templates_us_west_2.get_template_url(US_WEST_2_TEMPLATE_PATHS[DYNAMODB_STACK_NAME]),
 )
 
 print("Deploying IAM ROLES")
@@ -282,10 +285,7 @@ deploy(
 
 print("Deploying Dynamodb")
 
-deploy(
-    stack=dynamodb_stack_us_west_2,
-    template_url=templates_us_west_2.get_template_url(US_WEST_2_TEMPLATE_PATHS[DYNAMODB_STACK_NAME]),
-)
+
 
 print("Deploying us-west-2 bucket")
 

@@ -37,7 +37,7 @@ Parameters:
   
 
 Resources:
-  USWest2EnablerLambdaExecutionRolePolicy:
+  LambdaExecutionRolePolicy:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -69,7 +69,7 @@ Resources:
 
   EnablerLambdaFunction:
     Type: AWS::Lambda::Function
-    DependsOn: USWest2EnablerLambdaExecutionRolePolicy
+    DependsOn: LambdaExecutionRolePolicy
     Properties:
       Code: 
         S3Bucket: !Ref CodeBucket
