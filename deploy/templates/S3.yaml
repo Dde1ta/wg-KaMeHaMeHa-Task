@@ -2,7 +2,6 @@ Parameters:
   BucketName:
     Type: String
     Description: "Name of the bucket"
-    Default: ka-me-ha-me-ha
 
 
 Resources:

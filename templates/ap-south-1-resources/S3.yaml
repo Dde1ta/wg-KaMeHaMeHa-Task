@@ -69,7 +69,7 @@ Resources:
   APSouth1S3BucketNameSSMParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-name"
+      Name: "/internship/tasks/ka-me-ha-me-ha/ap-south-1/s3/bucket/task-bucket-bucket_name"
       Value: !Ref APSouth1S3Bucket
       Type: String
   

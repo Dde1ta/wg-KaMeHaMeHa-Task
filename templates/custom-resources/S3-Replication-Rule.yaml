@@ -17,7 +17,7 @@ Parameters:
 
   SourceBucketName:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
+    Default: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-bucket_name"
     Description: "Name of the Source bucket"
   
   ReplicationRoleArn:

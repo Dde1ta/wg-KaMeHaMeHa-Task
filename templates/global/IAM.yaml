@@ -271,7 +271,7 @@ Outputs:
     Description: "Execution Role Name of Ka-Me-Ha-Me-Ha-Enabler Lambda function"
     Value: !Ref USWest2EnablerLambdaExecutionRole
     Export:
-      Name: kamehameha-us-west-2-enabler-lambda-function-role-name
+      Name: kamehameha-us-west-2-enabler-lambda-function-role-bucket_name
 
   EnablerLambdaFunctionExecutionRoleArn:
     Description: "Execution Role arn of Ka-Me-Ha-Me-Ha-Enabler Lambda function"
@@ -283,7 +283,7 @@ Outputs:
     Description: "Execution Role Name of Custom Resource for s3 replication role Lambda function"
     Value: !Ref CustomResourceS3ReplicationRuleRole
     Export:
-      Name: kamehameha-custom-resource-s3-replication-role-name
+      Name: kamehameha-custom-resource-s3-replication-role-bucket_name
 
   CustomResourceS3ReplicationRuleExecutionRoleArn:
     Description: "Execution Role arn of Custom Resource for s3 replication role Lambda function"
@@ -295,7 +295,7 @@ Outputs:
     Description: "Execution Role Name of Custom Resource for s3 Initialization role Lambda function"
     Value: !Ref CustomResourceS3InitializationRole
     Export:
-      Name: kamehameha-custom-resource-s3-initialization-role-name
+      Name: kamehameha-custom-resource-s3-initialization-role-bucket_name
 
   CustomResourceS3InitializationExecutionRoleArn:
     Description: "Execution Role arn of Custom Resource for s3 Initialization role Lambda function"

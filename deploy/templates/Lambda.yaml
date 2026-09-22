@@ -1,52 +1,91 @@
 Parameters:
-  EnablerLambdaFunctionExecutionRoleArn:
+  ExecutionRoleArn:
     Type: String
-    Default: "/internship/tasks/ka-me-ha-me-ha/global/iam/lambda-execution-roles/enabler-arn"
-    Description: "The bucket_name ssm parameter which stores ka-me-ha-me-ha-enabler function execution role arn"
+    Description: "Lambda function execution role arn"
   
-  EnablerLambdaFunctionCodeBucket:
+  ExecutionRoleName:
     Type: String
-    Default: cloudformation-us-west-2-templates-295345165437-us-west-2-an
-    Description: "The bucket_name of the bucket stores ka-me-ha-me-ha-enabler function code zip file"
+    Description: "Lambda function execution role name"
   
-  EnablerLambdaFunctionCodeZipObjectKey:
+  CodeBucket:
     Type: String
-    Default: kamehameha/main/lambda-zips/us-west-2-ka-me-ha-me-ha-enabler.zip
-    Description: "The object key of the zip file of the code for ka-me-ha-me-ha-enabler function"
+    Description: "The bucket containing the code zip file"
   
-  EnablerLambdaFunctionEnvBucketName:
+  CodeZipObjectKey:
     Type: String
-    Default: <TO DO Insert S3 Bucket Name>
-    Description: "The Environment variable BUCKET_NAME for ka-me-ha-me-ha-enabler function"
+    Description: "The object containing the code zip file"
   
-  EnablerLambdaFunctionEnvObjectKey:
+  BucketNameEnv:
     Type: String
-    Default: <TO DO Insert S3 Object Key>
-    Description: "The Environment variable OBJECT_KEY for ka-me-ha-me-ha-enabler function"
+    Description: "The Environment variable BUCKET_NAME"
+  
+  ObjectKeyEnv:
+    Type: String
+    Description: "The Environment variable OBJECT_KEY"
   
   DynamodbStreamArn:
     Type: String
     Description: "Arn of the dynamodb stream"
 
+  KMSKeyArn:
+    Type: String
+    Description: "Arn of the kms Key"
+
+  LambdaFunctionName:
+    Type: String
+    Description: "The name of the function"
+  
 
 Resources:
+  USWest2EnablerLambdaExecutionRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+            Resource: !Sub "arn:${AWS::Partition}:s3:::${BucketNameEnv}-${AWS::AccountId}-us-west-2-an/*"
+          - Effect: "Allow"
+            Action:
+              - "dynamodb:ListStreams"
+            Resource: "*"
+          - Effect: "Allow"
+            Action:
+              - "dynamodb:DescribeStream"
+              - "dynamodb:GetShardIterator"
+              - "dynamodb:GetRecords"
+            Resource: !Ref DynamodbStreamArn
+          - Effect: "Allow"
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !Ref KMSKeyArn
+      PolicyName: KaMeHaMeHa-us-west-2-Enabler-Lambda-Execution-Role-Policy
+      Roles:
+        - !Ref ExecutionRoleName
+
   EnablerLambdaFunction:
     Type: AWS::Lambda::Function
+    DependsOn: USWest2EnablerLambdaExecutionRolePolicy
     Properties:
       Code: 
-        S3Bucket: !Ref EnablerLambdaFunctionCodeBucket
-        S3Key: !Ref EnablerLambdaFunctionCodeZipObjectKey
-      Role: !Ref EnablerLambdaFunctionExecutionRoleArn
-      FunctionName: ka-me-ha-me-ha-enabler
+        S3Bucket: !Ref CodeBucket
+        S3Key: !Ref CodeZipObjectKey
+      Role: !Ref ExecutionRoleArn
+      FunctionName: !Ref LambdaFunctionName
       Environment:
         Variables:
-          BUCKET_NAME: !Ref EnablerLambdaFunctionEnvBucketName
-          OBJECT_KEY: !Ref EnablerLambdaFunctionEnvObjectKey
+          BUCKET_NAME: !Ref BucketNameEnv
+          OBJECT_KEY: !Ref ObjectKeyEnv
       Description: "Task Required lambda function for the s3 bucket object manipulation"
       Runtime: python3.14
+      Timeout: 200
       Handler: handler.main
   
-  EnablerLambdaFunctionEventSourceMapping:
+  EventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
     Properties:
       FunctionName: !Ref EnablerLambdaFunction

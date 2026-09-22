@@ -31,7 +31,7 @@ Resources:
   USWest2S3BucketNameSSMParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-name"
+      Name: "/internship/tasks/ka-me-ha-me-ha/us-west-2/s3/bucket/task-bucket-bucket_name"
       Value: !Ref USWest2S3Bucket
       Type: String
   
@@ -48,4 +48,4 @@ Outputs:
     Value: !Ref USWest2S3Bucket
     Description: "Name of the bucket made in us-west-2"
     Export: 
-      Name: "kamehameha-us-west-2-bucket-name"
+      Name: "kamehameha-us-west-2-bucket-bucket_name"

@@ -4,25 +4,16 @@ Parameters:
     AllowedValues: ["True", "False"]
     Default: "False"
 
-  CreateKeys:
-    Type: String
-    AllowedValues: ["True", "False"]
-    Default: "False"
-
   KMSMainKeyArn:
     Type: String
     Default: "not:set"
 
 
 Conditions:
-  IsCreateReplicaKeyTrue: !And
-    - !Equals [!Ref CreateReplicaKey, "True"]
-    - !Equals [!Ref CreateKeys, "True"]
+  IsCreateReplicaKeyTrue: !Equals [!Ref CreateReplicaKey, "True"]
 
-  IsCreateMultiRegionKeyTrue: !And
-    - !Not
-      - Condition: IsCreateReplicaKeyTrue
-    - !Equals [!Ref CreateKeys, "True"]
+  IsCreateMultiRegionKeyTrue: !Not
+    - Condition: IsCreateReplicaKeyTrue
 
 
 Resources:
@@ -65,16 +56,6 @@ Outputs:
     Description: "KMS Key ARN for S3 SSE-KMS"
     Condition: IsCreateMultiRegionKeyTrue
     Value: !GetAtt KMSMainKey.Arn
-
-  KMSMainKeyId:
-    Description: "KMS Key ID for S3 SSE-KMS"
-    Condition: IsCreateMultiRegionKeyTrue
-    Value: !GetAtt KMSMainKey.KeyId
-
-  KMSReplicaKeyId:
-    Description: "Replica Key Id for S3 SSE-KMS"
-    Condition: IsCreateReplicaKeyTrue
-    Value: !GetAtt KMSReplicaKey.KeyId
 
   KMSReplicaKeyArn:
     Description: "Replica Key Arn for S3 SSE-KMS"

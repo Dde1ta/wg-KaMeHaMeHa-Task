@@ -2,12 +2,12 @@ Parameters:
   EnablerLambdaFunctionExecutionRoleArn:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/internship/tasks/ka-me-ha-me-ha/global/iam/lambda-execution-roles/enabler-arn"
-    Description: "The name ssm parameter which stores ka-me-ha-me-ha-enabler function execution role arn"
+    Description: "The bucket_name ssm parameter which stores ka-me-ha-me-ha-enabler function execution role arn"
   
   EnablerLambdaFunctionCodeBucket:
     Type: String
     Default: cloudformation-us-west-2-templates-295345165437-us-west-2-an
-    Description: "The name of the bucket stores ka-me-ha-me-ha-enabler function code zip file"
+    Description: "The bucket_name of the bucket stores ka-me-ha-me-ha-enabler function code zip file"
   
   EnablerLambdaFunctionCodeZipObjectKey:
     Type: String

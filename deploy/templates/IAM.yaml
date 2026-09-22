@@ -1,12 +1,10 @@
 Parameters:
   USWest2BucketName:
     Type: String
-    Default: ka-me-ha-me-ha
     Description: "Name of the bucket to be made in us-west-2"
 
   APSouth1BucketName:
     Type: String
-    Default: ka-me-ha-me-ha
     Description: "Name of the bucket to be made in ap-south-1"
 
   USWest2KMSKeyArn:
@@ -32,34 +30,6 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-
-  USWest2EnablerLambdaExecutionRolePolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Action:
-              - s3:PutObject
-              - s3:GetObject
-            Resource: "*"
-          - Effect: "Allow"
-            Resource: "*"
-            Action:
-              - "dynamodb:ListStreams"
-              - "dynamodb:DescribeStream"
-              - "dynamodb:GetShardIterator"
-              - "dynamodb:GetRecords"
-          - Effect: "Allow"
-            Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: "*"
-
-      PolicyName: KaMeHaMeHa-us-west-2-Enabler-Lambda-Execution-Role-Policy
-      Roles:
-        - !Ref USWest2EnablerLambdaExecutionRole
 
   USWest2ToAPSouth1ReplicationRole:
     Type: AWS::IAM::Role

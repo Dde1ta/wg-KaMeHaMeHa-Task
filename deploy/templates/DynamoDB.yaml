@@ -1,6 +1,5 @@
 Parameters:
   DynamodbTableName:
-    Default: ka-me-ha-me-ha-archives
     Type: String
 
 

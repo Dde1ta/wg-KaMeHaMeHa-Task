@@ -160,8 +160,8 @@ def deploy(stack: Stack,
 
 
 # sessions
-us_west_2_session = boto3.Session(region_name="us-west-2")
-ap_south_1_session = boto3.Session(region_name="ap-south-1")
+us_west_2_session = boto3.Session(region_name="us-west-2", profile_name="test-chahal")
+ap_south_1_session = boto3.Session(region_name="ap-south-1", profile_name="test-chahal")
 
 # clients
 cfn_us_west_2 = us_west_2_session.client("cloudformation")

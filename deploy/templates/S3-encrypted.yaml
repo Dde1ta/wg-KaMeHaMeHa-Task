@@ -32,8 +32,8 @@ Resources:
 Outputs:
   EncryptedS3BucketName:
     Value: !Ref EncryptedS3Bucket
-    Description: "Name of the bucket made in us-west-2"
+    Description: "Name of the bucket"
 
   EncryptedS3BucketArn:
     Value: !GetAtt EncryptedS3Bucket.Arn
-    Description: "Arn of the bucket made in us-west-2"
+    Description: "Arn of the bucket"
