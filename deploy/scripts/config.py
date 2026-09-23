@@ -50,6 +50,4 @@ CODE_ZIPS_PATH = {
     LAMBDA_STACK_NAME:      "deploy/zips/lambda-code.zip"
 }
 
-"""
-REGION
-"""
+

@@ -141,6 +141,8 @@ def deploy(stack: Stack,
             print(f"[{stack.name}] Stack update completed successfully.")
             return
 
+        raise UnHandleableStackState(f"Stack {stack.name} in {stack_status} which this script cannot handle")
+
     except StackDoesNotExist as e:
         print(f"[{stack.name}] Stack not found. Initiating creation sequence...")
 
@@ -274,56 +276,63 @@ def start_deployments():
     initialize()
     print("\nDeployment pipeline completed successfully.")
 
-# sessions
-us_west_2_session = boto3.Session(region_name="us-west-2", profile_name="test-chahal")
-ap_south_1_session = boto3.Session(region_name="ap-south-1", profile_name="test-chahal")
-
-# clients
-cfn_us_west_2 = us_west_2_session.client("cloudformation")
-cfn_ap_south_1 = ap_south_1_session.client("cloudformation")
-
-s3_ap_south_1 = ap_south_1_session.client("s3")
-s3_us_west_2 = us_west_2_session.client("s3")
-
-# account_id
-sts_client = boto3.client('sts')
-account = sts_client.get_caller_identity()['Account']
-del sts_client
-
-# Stacks
-bootstrap_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=BOOTSTRAP_STACK_NAME)
-bootstrap_stack_ap_south_1 = Stack(cfn_client=cfn_ap_south_1, stack_name=BOOTSTRAP_STACK_NAME)
-iam_stack = Stack(cfn_client=cfn_us_west_2, stack_name=IAM_STACK_NAME)
-key_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=KMS_MAIN_STACK_NAME)
-dynamodb_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=DYNAMODB_STACK_NAME)
-lambda_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=LAMBDA_STACK_NAME)
-s3_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=S3_STACK_NAME)
-key_stack_ap_south_1 = Stack(cfn_client=cfn_ap_south_1, stack_name=KMS_REPLICA_STACK_NAME)
-s3_stack_ap_south_1 = Stack(cfn_client=cfn_ap_south_1, stack_name=S3_STACK_NAME)
-
-# Templates
-templates_us_west_2 = Templates(s3_us_west_2)
-templates_ap_south_1 = Templates(s3_ap_south_1)
-
-
 
 if __name__ == "__main__":
     skip_updates = False
     skip_initialize = True
+    profile = "default"
 
     if len(sys.argv) > 1 and "--skip-updates" in sys.argv:
         try:
             skip_updates = sys.argv[sys.argv.index("--skip-updates") + 1].lower() == "true"
-        except ValueError:
+        except IndexError:
             pass
 
     if len(sys.argv) > 1 and "--skip-initialize" in sys.argv:
         try:
             skip_initialize = sys.argv[sys.argv.index("--skip-initialize") + 1].lower() == "true"
-        except ValueError:
+        except IndexError:
             pass
 
-    print("Debug: Skipping Updates set to -> ", skip_updates)
-    print("Debug: Skipping Initialize set to ->", skip_initialize)
+    if len(sys.argv) > 1 and "--profile" in sys.argv:
+        try:
+            profile = sys.argv[sys.argv.index("--profile") + 1]
+        except IndexError:
+            pass
+
+    print("Info: Skipping Updates set to -> ", skip_updates)
+    print("Info: Skipping Initialize set to ->", skip_initialize)
+    print("Info: Set Profile to ->", profile)
+
+    # sessions
+    us_west_2_session = boto3.Session(region_name="us-west-2", profile_name=profile)
+    ap_south_1_session = boto3.Session(region_name="ap-south-1", profile_name=profile)
+
+    # clients
+    cfn_us_west_2 = us_west_2_session.client("cloudformation")
+    cfn_ap_south_1 = ap_south_1_session.client("cloudformation")
+
+    s3_ap_south_1 = ap_south_1_session.client("s3")
+    s3_us_west_2 = us_west_2_session.client("s3")
+
+    # account_id
+    sts_client = boto3.client('sts')
+    account = sts_client.get_caller_identity()['Account']
+    del sts_client
+
+    # Stacks
+    bootstrap_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=BOOTSTRAP_STACK_NAME)
+    bootstrap_stack_ap_south_1 = Stack(cfn_client=cfn_ap_south_1, stack_name=BOOTSTRAP_STACK_NAME)
+    iam_stack = Stack(cfn_client=cfn_us_west_2, stack_name=IAM_STACK_NAME)
+    key_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=KMS_MAIN_STACK_NAME)
+    dynamodb_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=DYNAMODB_STACK_NAME)
+    lambda_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=LAMBDA_STACK_NAME)
+    s3_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=S3_STACK_NAME)
+    key_stack_ap_south_1 = Stack(cfn_client=cfn_ap_south_1, stack_name=KMS_REPLICA_STACK_NAME)
+    s3_stack_ap_south_1 = Stack(cfn_client=cfn_ap_south_1, stack_name=S3_STACK_NAME)
+
+    # Templates
+    templates_us_west_2 = Templates(s3_us_west_2)
+    templates_ap_south_1 = Templates(s3_ap_south_1)
 
     start_deployments()
