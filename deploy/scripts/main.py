@@ -43,7 +43,7 @@ def initialize():
                     },
                     "Priority": 1,
                     "DeleteMarkerReplication": {
-                        "Status": "Disabled"
+                        "Status": "Enabled"
                     },
                     "SourceSelectionCriteria": {
                         "SseKmsEncryptedObjects": {
@@ -75,7 +75,7 @@ def initialize():
                     },
                     "Priority": 1,
                     "DeleteMarkerReplication": {
-                        "Status": "Disabled"
+                        "Status": "Enabled"
                     },
                     "SourceSelectionCriteria": {
                         "SseKmsEncryptedObjects": {

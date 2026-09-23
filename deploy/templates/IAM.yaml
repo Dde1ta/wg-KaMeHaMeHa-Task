@@ -43,7 +43,7 @@ Resources:
                 - s3.amazonaws.com
             Action: "sts:AssumeRole"
       Policies:
-        - PolicyName: Allow-Read-To-Bucket-One-For-Two-Inline
+        - PolicyName: Allow-Primary-Bucket-Read-and-Secondary-Bucket-Write
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -53,30 +53,26 @@ Resources:
                   - s3:ListBucket
                 Resource:
                   - !Ref PrimaryBucketArn
-
               - Effect: "Allow"
                 Action:
                   - s3:GetObjectVersionForReplication
                   - s3:GetObjectVersionAcl
                   - s3:GetObjectVersionTagging
                 Resource:
-                  - !Ref PrimaryBucketArn
-
+                  - !Sub "${PrimaryBucketArn}/*"
               - Effect: "Allow"
                 Action:
                   - s3:ReplicateObject
                   - s3:ReplicateTags
                   - s3:ReplicateDelete
                 Resource:
-                  - !Ref SecondaryBucketArn
-                
+                  - !Sub "${SecondaryBucketArn}/*"
               - Effect: "Allow"
                 Action:
                   - "kms:Encrypt"
                   - "kms:GenerateDataKey"
                 Resource:
                   - !Ref SecondaryKMSKeyArn
-              
               - Effect: "Allow"
                 Action:
                   - "kms:Decrypt"
@@ -95,7 +91,7 @@ Resources:
                 - s3.amazonaws.com
             Action: "sts:AssumeRole"
       Policies:
-        - PolicyName: Allow-Read-To-Bucket-Two-For-One-Inline
+        - PolicyName: Allow-Secondary-Bucket-Read-and-Primary-Bucket-Write
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -105,30 +101,26 @@ Resources:
                   - s3:ListBucket
                 Resource:
                   - !Ref SecondaryBucketArn
-
               - Effect: "Allow"
                 Action:
                   - s3:GetObjectVersionForReplication
                   - s3:GetObjectVersionAcl
                   - s3:GetObjectVersionTagging
                 Resource:
-                  - !Ref SecondaryBucketArn
-
+                  - !Sub "${SecondaryBucketArn}/*"
               - Effect: "Allow"
                 Action:
                   - s3:ReplicateObject
                   - s3:ReplicateTags
                   - s3:ReplicateDelete
                 Resource:
-                  - !Ref PrimaryBucketArn
-              
+                  - !Sub "${PrimaryBucketArn}/*"
               - Effect: "Allow"
                 Action:
                   - "kms:Encrypt"
                   - "kms:GenerateDataKey"
                 Resource:
                   - !Ref PrimaryKMSKeyArn
-              
               - Effect: "Allow"
                 Action:
                   - "kms:Decrypt"

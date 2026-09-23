@@ -63,7 +63,7 @@ Resources:
               - "kms:Decrypt"
               - "kms:GenerateDataKey"
             Resource: !Ref KMSKeyArn
-      PolicyName: KaMeHaMeHa-us-west-2-Enabler-Lambda-Execution-Role-Policy
+      PolicyName: Enabler-Function-Execution-Policy
       Roles:
         - !Ref ExecutionRoleName
 
@@ -87,6 +87,7 @@ Resources:
   
   EventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
+    DependsOn: LambdaExecutionRolePolicy
     Properties:
       FunctionName: !Ref EnablerLambdaFunction
       Enabled: true

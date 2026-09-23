@@ -7,8 +7,9 @@ class Item:
         self._defender = {}
         self._location = ""
         self._time = 0
-        self._attack_id = ""
         self._result = False  # boolean
+        self._reason = ""
+        self._damage = 0
 
     @property
     def attacker(self) -> dict:
@@ -39,8 +40,12 @@ class Item:
         return self._result
 
     @property
-    def attack_id(self) -> str:
-        return self._attack_id
+    def reason(self) -> str:
+        return self._reason
+
+    @property
+    def damage(self) -> int:
+        return self._damage
 
     @attacker.setter
     def attacker(self, value: str) -> None:
@@ -50,7 +55,7 @@ class Item:
         :return: None
         """
 
-        regex = r"^([a-zA-Z_]+)#([a-zA-Z_]+)$"
+        regex = r"^([a-zA-Z0-9_]+)#([a-zA-Z0-9_]+)$"
 
         match = self.validate_field(regex, value)
 
@@ -70,7 +75,7 @@ class Item:
         :return: None
         """
 
-        regex = r"^([a-zA-Z_]+)#([a-zA-Z_]+)$"
+        regex = r"^([a-zA-Z0-9_]+)#([a-zA-Z0-9_]+)$"
 
         match = self.validate_field(regex, value)
 
@@ -113,31 +118,30 @@ class Item:
         else:
             raise ValueError("Result has to be boolean")
 
-    @attack_id.setter
-    def attack_id(self, value: str) -> None:
-        """
-        uuid 7
-        :param value:
-        :return:
-        """
-        regex = r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+    @reason.setter
+    def reason(self, value: str) -> None:
+
+        regex = r"(.+)$"
+
+        match = self.validate_field(regex, value)
+
+        if match is not None:
+            self._reason = value
+        else:
+            raise ValueError("Reason is wrongly formatted")
+
+    @damage.setter
+    def damage(self, value: int) -> None:
+
+        # \d+ checks for one or more digits
+        regex = r"^\d+$"
 
         match = self.validate_field(regex, str(value))
 
         if match is not None:
-            self._attack_id = value
+            self._damage = value
         else:
-            raise ValueError("attack_id is wrongly formatted")
-
-    def to_dict(self) -> dict:
-        return {
-            "AttackID": self.attack_id,
-            "Attacker": self.attacker,
-            "Defender": self.defender,
-            "Location": self.location,
-            "Result":  "Successful" if self.result else "Failed",
-            "Timestamp": self.timestamp
-        }
+            raise ValueError("Damage is wrongly formatted")
 
     @classmethod
     def validate_field(cls, regex: str, value: str) -> re.Match | None:
@@ -147,3 +151,14 @@ class Item:
             return match
         else:
             return None
+
+    def to_dict(self) -> dict:
+        return {
+            "Attacker": self.attacker,
+            "Defender": self.defender,
+            "Location": self.location,
+            "Result":  "Successful" if self.result else "Failed",
+            "Timestamp": self.timestamp,
+            "Reason for attack": self.reason,
+            "Damage": self.damage
+        }

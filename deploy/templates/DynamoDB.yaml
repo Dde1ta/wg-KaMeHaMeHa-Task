@@ -22,12 +22,16 @@ Resources:
         StreamViewType: NEW_IMAGE 
 
       AttributeDefinitions:
-        - AttributeName: "AttackID"
+        - AttributeName: "Attacker"
+          AttributeType: "S"
+        - AttributeName: "DefenderTimestamp"
           AttributeType: "S"
 
       KeySchema:
-        - AttributeName: "AttackID"
+        - AttributeName: "Attacker"
           KeyType: HASH
+        - AttributeName: "DefenderTimestamp"
+          KeyType: RANGE
 
 
 Outputs:
