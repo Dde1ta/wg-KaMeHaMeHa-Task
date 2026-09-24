@@ -23,9 +23,7 @@ class Stack:
         Returns stacks progress.
         :return: Stack status e.g. CREATE_COMPLETE, CREATE_IN_PROGRESS
         """
-
         try:
-
             response = self.client.describe_stacks(
                 StackName=self.name
             )
@@ -33,6 +31,25 @@ class Stack:
             stack_status = response["Stacks"][0].get("StackStatus")
 
             return stack_status
+
+        except ClientError as e:
+            error = e.response.get("Error")
+
+            if error.get("Code") == "ValidationError":
+                raise StackDoesNotExist(f"Stack {self.name} not found in region {self.region}")
+
+            else:
+                raise StackException("An error occurred during stack status check", reason=error)
+
+    def get_stack_status_reason(self) -> str:
+        try:
+            response = self.client.describe_stacks(
+                StackName=self.name
+            )
+
+            stack_status_reason = response["Stacks"][0].get("StackStatusReason")
+
+            return stack_status_reason
 
         except ClientError as e:
             error = e.response.get("Error")
