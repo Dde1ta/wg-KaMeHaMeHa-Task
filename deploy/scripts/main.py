@@ -1,5 +1,6 @@
 import json
 import boto3
+from botocore.exceptions import ClientError
 
 from ..resources.stacks import Stack
 from ..resources.template import Templates
@@ -17,88 +18,117 @@ def upload_templates(templates: Templates, paths: dict):
 
 
 def initialize():
-    if skip_initialize:
-        print("Skipping initialization !!")
-        return
-
+    # Extract outputs safely to prevent NoneType attribute errors
     us_west_2_bucket = s3_stack_us_west_2.get_output().get("EncryptedS3BucketName")
     ap_south_1_bucket = s3_stack_ap_south_1.get_output().get("EncryptedS3BucketName")
 
-    print(f"Configuring S3 Cross-Region Replication: {us_west_2_bucket} (us-west-2) -> {ap_south_1_bucket} (ap-south-1)")
-    s3_us_west_2.put_bucket_replication(
-        Bucket=us_west_2_bucket,
-        ReplicationConfiguration={
-            "Role": iam_stack.get_output().get("PrimaryToSecondaryReplicationRoleArn"),
-            "Rules": [
-                {
-                    "Destination": {
-                        "Bucket": f'arn:aws:s3:::{ap_south_1_bucket}',
-                        "EncryptionConfiguration": {
-                            "ReplicaKmsKeyID": key_stack_ap_south_1.get_output().get("KMSReplicaKeyArn")
+    primary_role = iam_stack.get_output().get("PrimaryToSecondaryReplicationRoleArn")
+    secondary_role = iam_stack.get_output().get("SecondaryToPrimaryReplicationRoleArn")
+
+    main_key = key_stack_us_west_2.get_output().get("KMSMainKeyArn")
+    replica_key = key_stack_ap_south_1.get_output().get("KMSReplicaKeyArn")
+
+    # 1. Dependency Check: Ensure all required outputs resolved successfully
+    missing_dependencies = []
+    if not us_west_2_bucket: missing_dependencies.append("us_west_2_bucket")
+    if not ap_south_1_bucket: missing_dependencies.append("ap_south_1_bucket")
+    if not primary_role: missing_dependencies.append("PrimaryToSecondaryReplicationRoleArn")
+    if not secondary_role: missing_dependencies.append("SecondaryToPrimaryReplicationRoleArn")
+    if not main_key: missing_dependencies.append("KMSMainKeyArn")
+    if not replica_key: missing_dependencies.append("KMSReplicaKeyArn")
+
+    if missing_dependencies:
+        print(f"Initialization aborted. Missing required stack outputs: {', '.join(missing_dependencies)}")
+        return
+
+    # 2. Replication Check (us-west-2 -> ap-south-1)
+    try:
+        s3_us_west_2.get_bucket_replication(Bucket=us_west_2_bucket)
+        print(f"Replication already configured for {us_west_2_bucket}. Skipping.")
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ReplicationConfigurationNotFoundError':
+            print(
+                f"Configuring S3 Cross-Region Replication: {us_west_2_bucket} (us-west-2) -> {ap_south_1_bucket} (ap-south-1)")
+            s3_us_west_2.put_bucket_replication(
+                Bucket=us_west_2_bucket,
+                ReplicationConfiguration={
+                    "Role": primary_role,
+                    "Rules": [
+                        {
+                            "Destination": {
+                                "Bucket": f'arn:aws:s3:::{ap_south_1_bucket}',
+                                "EncryptionConfiguration": {
+                                    "ReplicaKmsKeyID": replica_key
+                                }
+                            },
+                            "Status": "Enabled",
+                            "Filter": {"Prefix": ""},
+                            "Priority": 1,
+                            "DeleteMarkerReplication": {"Status": "Enabled"},
+                            "SourceSelectionCriteria": {
+                                "SseKmsEncryptedObjects": {"Status": "Enabled"}
+                            }
                         }
-                    },
-                    "Status": "Enabled",
-                    "Filter": {
-                        "Prefix": ""
-                    },
-                    "Priority": 1,
-                    "DeleteMarkerReplication": {
-                        "Status": "Enabled"
-                    },
-                    "SourceSelectionCriteria": {
-                        "SseKmsEncryptedObjects": {
-                            "Status": "Enabled"
-                        }
-                    }
+                    ]
                 }
-            ]
-        }
-    )
+            )
+        else:
+            raise e
 
-    print(
-        f"Configuring S3 Cross-Region Replication: {ap_south_1_bucket} (ap-south-1) -> {us_west_2_bucket} (us-west-2)")
-    s3_ap_south_1.put_bucket_replication(
-        Bucket=ap_south_1_bucket,
-        ReplicationConfiguration={
-            "Role": iam_stack.get_output().get("SecondaryToPrimaryReplicationRoleArn"),
-            "Rules": [
-                {
-                    "Destination": {
-                        "Bucket": f'arn:aws:s3:::{us_west_2_bucket}',
-                        "EncryptionConfiguration": {
-                            "ReplicaKmsKeyID": key_stack_us_west_2.get_output().get("KMSMainKeyArn")
+    # 3. Replication Check (ap-south-1 -> us-west-2)
+    try:
+        s3_ap_south_1.get_bucket_replication(Bucket=ap_south_1_bucket)
+        print(f"Replication already configured for {ap_south_1_bucket}. Skipping.")
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ReplicationConfigurationNotFoundError':
+            print(
+                f"Configuring S3 Cross-Region Replication: {ap_south_1_bucket} (ap-south-1) -> {us_west_2_bucket} (us-west-2)")
+            s3_ap_south_1.put_bucket_replication(
+                Bucket=ap_south_1_bucket,
+                ReplicationConfiguration={
+                    "Role": secondary_role,
+                    "Rules": [
+                        {
+                            "Destination": {
+                                "Bucket": f'arn:aws:s3:::{us_west_2_bucket}',
+                                "EncryptionConfiguration": {
+                                    "ReplicaKmsKeyID": main_key
+                                }
+                            },
+                            "Status": "Enabled",
+                            "Filter": {"Prefix": ""},
+                            "Priority": 1,
+                            "DeleteMarkerReplication": {"Status": "Enabled"},
+                            "SourceSelectionCriteria": {
+                                "SseKmsEncryptedObjects": {"Status": "Enabled"}
+                            }
                         }
-                    },
-                    "Status": "Enabled",
-                    "Filter": {
-                        "Prefix": ""
-                    },
-                    "Priority": 1,
-                    "DeleteMarkerReplication": {
-                        "Status": "Enabled"
-                    },
-                    "SourceSelectionCriteria": {
-                        "SseKmsEncryptedObjects": {
-                            "Status": "Enabled"
-                        }
-                    }
+                    ]
                 }
-            ]
-        }
-    )
+            )
+        else:
+            raise e
 
-    print(f"Uploading initial state file '{OBJECTIVE_FILE}' to bucket {us_west_2_bucket}")
-    s3_us_west_2.put_object(
-        Bucket=us_west_2_bucket,
-        Key=OBJECTIVE_FILE,
-        Body=json.dumps(
-            {
-                "previous": {},
-                "current": {}
-            }
-        )
-    )
-
+    # 4. State File Existence Check
+    try:
+        s3_us_west_2.head_object(Bucket=us_west_2_bucket, Key=OBJECTIVE_FILE)
+        print(
+            f"State file '{OBJECTIVE_FILE}' already exists in {us_west_2_bucket}. Skipping upload to prevent overwrite.")
+    except ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            print(f"Uploading initial state file '{OBJECTIVE_FILE}' to bucket {us_west_2_bucket}")
+            s3_us_west_2.put_object(
+                Bucket=us_west_2_bucket,
+                Key=OBJECTIVE_FILE,
+                Body=json.dumps(
+                    {
+                        "previous": {},
+                        "current": {}
+                    }
+                )
+            )
+        else:
+            raise e
 
 def deploy(stack: Stack,
            template_url: str | None = None,
@@ -229,7 +259,7 @@ def start_deployments():
     deploy(
         stack=dynamodb_stack_us_west_2,
         template_url=templates_us_west_2.get_template_url(US_WEST_2_TEMPLATE_PATHS[DYNAMODB_STACK_NAME]),
-        DynamodbTableName="ka-me-ha-me-ha-archives"
+        DynamodbTableName=f"{COMMON_NAME}-archives"
     )
 
     print("\n--- Deploying Buckets  ---")
@@ -238,7 +268,7 @@ def start_deployments():
         stack=s3_stack_us_west_2,
         template_url=templates_us_west_2.get_template_url(US_WEST_2_TEMPLATE_PATHS[S3_STACK_NAME]),
         SSEKMSKeyID=key_stack_us_west_2.get_output().get("KMSMainKeyArn"),
-        BucketName="ka-me-ha-me-ha"
+        BucketName=COMMON_NAME
     )
 
     print("Deploying Encrypted S3 Bucket (ap-south-1)...")
@@ -246,7 +276,7 @@ def start_deployments():
         stack=s3_stack_ap_south_1,
         template_url=templates_ap_south_1.get_template_url(AP_SOUTH_1_TEMPLATE_PATHS[S3_STACK_NAME]),
         SSEKMSKeyID=key_stack_ap_south_1.get_output().get("KMSReplicaKeyArn"),
-        BucketName="ka-me-ha-me-ha"
+        BucketName=COMMON_NAME
     )
 
     print("\n--- Deploying IAM Roles ---")
@@ -273,7 +303,8 @@ def start_deployments():
         ObjectKeyEnv=OBJECTIVE_FILE,
         DynamodbStreamArn=dynamodb_stack_us_west_2.get_output().get("DynamoDBTableStreamArn"),
         KMSKeyArn=key_stack_us_west_2.get_output().get("KMSMainKeyArn"),
-        LambdaFunctionName="ka-me-ha-me-ha--enabler"
+        LambdaFunctionName=f"{COMMON_NAME}--enabler",
+        ProfileNameQuantifier=COMMON_NAME
     )
 
     print("\n--- Finalizing Post-Deployment Configuration ---")

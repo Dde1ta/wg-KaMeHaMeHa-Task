@@ -173,8 +173,8 @@ class Stack:
             waiter.wait(
                 StackName=self.name,
                 WaiterConfig={
-                    'Delay': 30,
-                    'MaxAttempts': 40
+                    'Delay': 20,
+                    'MaxAttempts': 150
                 }
             )
 
@@ -228,7 +228,7 @@ class Stack:
                 ChangeSetName=self.change_set_name,
                 StackName=self.name,
                 WaiterConfig={
-                    'Delay': 5,
+                    'Delay': 2,
                     'MaxAttempts': 500
                 }
             )
@@ -262,8 +262,8 @@ class Stack:
             waiter.wait(
                 StackName=self.name,
                 WaiterConfig={
-                    'Delay': 5,
-                    'MaxAttempts': 500
+                    'Delay': 20,
+                    'MaxAttempts': 150
                 }
             )
 

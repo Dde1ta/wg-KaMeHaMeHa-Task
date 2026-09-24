@@ -1,3 +1,6 @@
 .vscode
 .idea
 f15b6b15-db4f-4f28-b709-69332c989de7
+cmds.txt
+*/__pycache__/*
+__pycache__

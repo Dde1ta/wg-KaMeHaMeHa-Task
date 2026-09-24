@@ -2,23 +2,25 @@
     NAMES
 """
 
-TEMPLATE_BUCKET_NAME   = "ka-me-ha-me-ha--bootstrap-bucket"
+COMMON_NAME = "ka-me-ha-me-ha"
 
-BOOTSTRAP_STACK_NAME   = "ka-me-ha-me-ha--bootstrap"
+TEMPLATE_BUCKET_NAME   = f"{COMMON_NAME}--bootstrap-bucket"
 
-IAM_STACK_NAME         = "ka-me-ha-me-ha--IAM"
+BOOTSTRAP_STACK_NAME   = f"{COMMON_NAME}--bootstrap"
 
-KMS_MAIN_STACK_NAME    = "ka-me-ha-me-ha--KMS-us-west-2"
+IAM_STACK_NAME         = f"{COMMON_NAME}--IAM"
 
-KMS_REPLICA_STACK_NAME = "ka-me-ha-me-ha--KMS-ap-south-1"
+KMS_MAIN_STACK_NAME    = f"{COMMON_NAME}--KMS-us-west-2"
 
-DYNAMODB_STACK_NAME    = "ka-me-ha-me-ha--dynamodb"
+KMS_REPLICA_STACK_NAME = f"{COMMON_NAME}--KMS-ap-south-1"
 
-LAMBDA_STACK_NAME      = "ka-me-ha-me-ha--lambda"
+DYNAMODB_STACK_NAME    = f"{COMMON_NAME}--dynamodb"
 
-S3_STACK_NAME          = "ka-me-ha-me-ha--S3"
+LAMBDA_STACK_NAME      = f"{COMMON_NAME}--lambda"
 
-S3_BUCKET_NAME         = "ka-me-ha-me-ha"
+S3_STACK_NAME          = f"{COMMON_NAME}--S3"
+
+S3_BUCKET_NAME         = f"{COMMON_NAME}"
 
 OBJECTIVE_FILE         = "teenage-mutant-ninja-turtles.json"
 
