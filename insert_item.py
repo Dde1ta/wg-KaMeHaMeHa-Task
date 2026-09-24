@@ -2,6 +2,19 @@ import time
 import boto3
 from uuid import uuid7  # pip install uuid6
 
+table_name = "ka-me-ha-me-ha-archives"
+profile = "default"
+
+table_name_new = input(f"Enter Table Name (Default: {table_name}): ")
+profile_new = input(f"Enter profile (Default: {profile}): ")
+
+if table_name_new != "":
+    table_name = table_name_new
+
+if profile != "":
+    profile = profile_new
+
+
 attacker = input("Enter the attacker: ")
 attacker_class = input("Enter the Class of the attacker: ")
 
@@ -19,13 +32,13 @@ timestamp = int(time.time() * 1000)
 # Construct the composite Sort Key
 sort_key = f"{defender_class}#{defender}#{timestamp}"
 
-us_west_2_session = boto3.Session(region_name="us-west-2", profile_name="test-chahal")
+us_west_2_session = boto3.Session(region_name="us-west-2", profile_name=profile)
 dynamodb_client = us_west_2_session.client("dynamodb")
 
 print("Adding to table")
 
 response = dynamodb_client.put_item(
-    TableName="ka-me-ha-me-ha-archives",
+    TableName=table_name,
     Item={
         "Attacker": {
             "S": f"{attacker_class}#{attacker}"

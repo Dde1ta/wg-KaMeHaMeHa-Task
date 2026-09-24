@@ -139,9 +139,13 @@ def deploy(stack: Stack,
             print(f"[{stack.name}] Waiting for stack update to complete...")
             stack.wait_for_update()
             print(f"[{stack.name}] Stack update completed successfully.")
+
             return
 
-        raise UnHandleableStackState(f"Stack {stack.name} in {stack_status} which this script cannot handle")
+        raise UnHandleableStackState(
+            f"Stack {stack.name} in {stack_status} which this script cannot handle",
+            reason=stack.get_stack_status_reason()
+        )
 
     except StackDoesNotExist as e:
         print(f"[{stack.name}] Stack not found. Initiating creation sequence...")
@@ -245,7 +249,7 @@ def start_deployments():
         BucketName="ka-me-ha-me-ha"
     )
 
-    print("\n--- Deploying IAM Infrastructure ---")
+    print("\n--- Deploying IAM Roles ---")
     print("Deploying S3 Replication and Lambda Execution Roles...")
     deploy(
         stack=iam_stack,
@@ -321,18 +325,18 @@ if __name__ == "__main__":
     del sts_client
 
     # Stacks
-    bootstrap_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=BOOTSTRAP_STACK_NAME)
+    bootstrap_stack_us_west_2  = Stack(cfn_client=cfn_us_west_2, stack_name=BOOTSTRAP_STACK_NAME)
     bootstrap_stack_ap_south_1 = Stack(cfn_client=cfn_ap_south_1, stack_name=BOOTSTRAP_STACK_NAME)
-    iam_stack = Stack(cfn_client=cfn_us_west_2, stack_name=IAM_STACK_NAME)
-    key_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=KMS_MAIN_STACK_NAME)
-    dynamodb_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=DYNAMODB_STACK_NAME)
-    lambda_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=LAMBDA_STACK_NAME)
-    s3_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=S3_STACK_NAME)
-    key_stack_ap_south_1 = Stack(cfn_client=cfn_ap_south_1, stack_name=KMS_REPLICA_STACK_NAME)
-    s3_stack_ap_south_1 = Stack(cfn_client=cfn_ap_south_1, stack_name=S3_STACK_NAME)
+    iam_stack                  = Stack(cfn_client=cfn_us_west_2, stack_name=IAM_STACK_NAME)
+    key_stack_us_west_2        = Stack(cfn_client=cfn_us_west_2, stack_name=KMS_MAIN_STACK_NAME)
+    dynamodb_stack_us_west_2   = Stack(cfn_client=cfn_us_west_2, stack_name=DYNAMODB_STACK_NAME)
+    lambda_stack_us_west_2     = Stack(cfn_client=cfn_us_west_2, stack_name=LAMBDA_STACK_NAME)
+    s3_stack_us_west_2         = Stack(cfn_client=cfn_us_west_2, stack_name=S3_STACK_NAME)
+    key_stack_ap_south_1       = Stack(cfn_client=cfn_ap_south_1, stack_name=KMS_REPLICA_STACK_NAME)
+    s3_stack_ap_south_1        = Stack(cfn_client=cfn_ap_south_1, stack_name=S3_STACK_NAME)
 
     # Templates
-    templates_us_west_2 = Templates(s3_us_west_2)
-    templates_ap_south_1 = Templates(s3_ap_south_1)
+    templates_us_west_2        = Templates(s3_us_west_2)
+    templates_ap_south_1       = Templates(s3_ap_south_1)
 
     start_deployments()
