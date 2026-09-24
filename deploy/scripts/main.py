@@ -17,8 +17,46 @@ def upload_templates(templates: Templates, paths: dict):
     templates.upload_templates(*list(paths.values()))
 
 
+def add_replication_rule(s3_client,
+                         main_bucket: str | None,
+                         replica_bucket: str | None,
+                         key: str | None,
+                         role: str | None):
+    try:
+        s3_client.get_bucket_replication(Bucket=main_bucket)
+        print(f"Replication already configured for {main_bucket}. Skipping.")
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ReplicationConfigurationNotFoundError':
+            print(
+                f"Configuring S3 Cross-Region Replication: {main_bucket} (us-west-2) -> {replica_bucket} (ap-south-1)")
+            s3_us_west_2.put_bucket_replication(
+                Bucket=main_bucket,
+                ReplicationConfiguration={
+                    "Role": role,
+                    "Rules": [
+                        {
+                            "Destination": {
+                                "Bucket": f'arn:aws:s3:::{replica_bucket}',
+                                "EncryptionConfiguration": {
+                                    "ReplicaKmsKeyID": key
+                                }
+                            },
+                            "Status": "Enabled",
+                            "Filter": {"Prefix": ""},
+                            "Priority": 1,
+                            "DeleteMarkerReplication": {"Status": "Enabled"},
+                            "SourceSelectionCriteria": {
+                                "SseKmsEncryptedObjects": {"Status": "Enabled"}
+                            }
+                        }
+                    ]
+                }
+            )
+        else:
+            raise e
+
+
 def initialize():
-    # Extract outputs safely to prevent NoneType attribute errors
     us_west_2_bucket = s3_stack_us_west_2.get_output().get("EncryptedS3BucketName")
     ap_south_1_bucket = s3_stack_ap_south_1.get_output().get("EncryptedS3BucketName")
 
@@ -28,86 +66,23 @@ def initialize():
     main_key = key_stack_us_west_2.get_output().get("KMSMainKeyArn")
     replica_key = key_stack_ap_south_1.get_output().get("KMSReplicaKeyArn")
 
-    # 1. Dependency Check: Ensure all required outputs resolved successfully
-    missing_dependencies = []
-    if not us_west_2_bucket: missing_dependencies.append("us_west_2_bucket")
-    if not ap_south_1_bucket: missing_dependencies.append("ap_south_1_bucket")
-    if not primary_role: missing_dependencies.append("PrimaryToSecondaryReplicationRoleArn")
-    if not secondary_role: missing_dependencies.append("SecondaryToPrimaryReplicationRoleArn")
-    if not main_key: missing_dependencies.append("KMSMainKeyArn")
-    if not replica_key: missing_dependencies.append("KMSReplicaKeyArn")
-
-    if missing_dependencies:
-        print(f"Initialization aborted. Missing required stack outputs: {', '.join(missing_dependencies)}")
-        return
-
     # 2. Replication Check (us-west-2 -> ap-south-1)
-    try:
-        s3_us_west_2.get_bucket_replication(Bucket=us_west_2_bucket)
-        print(f"Replication already configured for {us_west_2_bucket}. Skipping.")
-    except ClientError as e:
-        if e.response['Error']['Code'] == 'ReplicationConfigurationNotFoundError':
-            print(
-                f"Configuring S3 Cross-Region Replication: {us_west_2_bucket} (us-west-2) -> {ap_south_1_bucket} (ap-south-1)")
-            s3_us_west_2.put_bucket_replication(
-                Bucket=us_west_2_bucket,
-                ReplicationConfiguration={
-                    "Role": primary_role,
-                    "Rules": [
-                        {
-                            "Destination": {
-                                "Bucket": f'arn:aws:s3:::{ap_south_1_bucket}',
-                                "EncryptionConfiguration": {
-                                    "ReplicaKmsKeyID": replica_key
-                                }
-                            },
-                            "Status": "Enabled",
-                            "Filter": {"Prefix": ""},
-                            "Priority": 1,
-                            "DeleteMarkerReplication": {"Status": "Enabled"},
-                            "SourceSelectionCriteria": {
-                                "SseKmsEncryptedObjects": {"Status": "Enabled"}
-                            }
-                        }
-                    ]
-                }
-            )
-        else:
-            raise e
+    add_replication_rule(
+        s3_client=s3_us_west_2,
+        main_bucket=us_west_2_bucket,
+        replica_bucket=ap_south_1_bucket,
+        key=replica_key,
+        role=primary_role
+    )
 
     # 3. Replication Check (ap-south-1 -> us-west-2)
-    try:
-        s3_ap_south_1.get_bucket_replication(Bucket=ap_south_1_bucket)
-        print(f"Replication already configured for {ap_south_1_bucket}. Skipping.")
-    except ClientError as e:
-        if e.response['Error']['Code'] == 'ReplicationConfigurationNotFoundError':
-            print(
-                f"Configuring S3 Cross-Region Replication: {ap_south_1_bucket} (ap-south-1) -> {us_west_2_bucket} (us-west-2)")
-            s3_ap_south_1.put_bucket_replication(
-                Bucket=ap_south_1_bucket,
-                ReplicationConfiguration={
-                    "Role": secondary_role,
-                    "Rules": [
-                        {
-                            "Destination": {
-                                "Bucket": f'arn:aws:s3:::{us_west_2_bucket}',
-                                "EncryptionConfiguration": {
-                                    "ReplicaKmsKeyID": main_key
-                                }
-                            },
-                            "Status": "Enabled",
-                            "Filter": {"Prefix": ""},
-                            "Priority": 1,
-                            "DeleteMarkerReplication": {"Status": "Enabled"},
-                            "SourceSelectionCriteria": {
-                                "SseKmsEncryptedObjects": {"Status": "Enabled"}
-                            }
-                        }
-                    ]
-                }
-            )
-        else:
-            raise e
+    add_replication_rule(
+        s3_client=s3_us_west_2,
+        main_bucket=ap_south_1_bucket,
+        replica_bucket=us_west_2_bucket,
+        key=main_key,
+        role=secondary_role
+    )
 
     # 4. State File Existence Check
     try:
@@ -129,6 +104,7 @@ def initialize():
             )
         else:
             raise e
+
 
 def deploy(stack: Stack,
            template_url: str | None = None,
@@ -356,18 +332,18 @@ if __name__ == "__main__":
     del sts_client
 
     # Stacks
-    bootstrap_stack_us_west_2  = Stack(cfn_client=cfn_us_west_2, stack_name=BOOTSTRAP_STACK_NAME)
+    bootstrap_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=BOOTSTRAP_STACK_NAME)
     bootstrap_stack_ap_south_1 = Stack(cfn_client=cfn_ap_south_1, stack_name=BOOTSTRAP_STACK_NAME)
-    iam_stack                  = Stack(cfn_client=cfn_us_west_2, stack_name=IAM_STACK_NAME)
-    key_stack_us_west_2        = Stack(cfn_client=cfn_us_west_2, stack_name=KMS_MAIN_STACK_NAME)
-    dynamodb_stack_us_west_2   = Stack(cfn_client=cfn_us_west_2, stack_name=DYNAMODB_STACK_NAME)
-    lambda_stack_us_west_2     = Stack(cfn_client=cfn_us_west_2, stack_name=LAMBDA_STACK_NAME)
-    s3_stack_us_west_2         = Stack(cfn_client=cfn_us_west_2, stack_name=S3_STACK_NAME)
-    key_stack_ap_south_1       = Stack(cfn_client=cfn_ap_south_1, stack_name=KMS_REPLICA_STACK_NAME)
-    s3_stack_ap_south_1        = Stack(cfn_client=cfn_ap_south_1, stack_name=S3_STACK_NAME)
+    iam_stack = Stack(cfn_client=cfn_us_west_2, stack_name=IAM_STACK_NAME)
+    key_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=KMS_MAIN_STACK_NAME)
+    dynamodb_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=DYNAMODB_STACK_NAME)
+    lambda_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=LAMBDA_STACK_NAME)
+    s3_stack_us_west_2 = Stack(cfn_client=cfn_us_west_2, stack_name=S3_STACK_NAME)
+    key_stack_ap_south_1 = Stack(cfn_client=cfn_ap_south_1, stack_name=KMS_REPLICA_STACK_NAME)
+    s3_stack_ap_south_1 = Stack(cfn_client=cfn_ap_south_1, stack_name=S3_STACK_NAME)
 
     # Templates
-    templates_us_west_2        = Templates(s3_us_west_2)
-    templates_ap_south_1       = Templates(s3_ap_south_1)
+    templates_us_west_2 = Templates(s3_us_west_2)
+    templates_ap_south_1 = Templates(s3_ap_south_1)
 
     start_deployments()
